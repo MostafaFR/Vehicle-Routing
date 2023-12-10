@@ -1,4 +1,4 @@
-function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance] = parameters(dxi, state)
+function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
     %% Constantes de l'expérience
     iterations = 3000; % Nombre d'itérations de l'expérience
     plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
@@ -11,6 +11,8 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
     %% Initialisation des variables
     desired_distance = 0.3; % Distance désirée entre les robots
     d = desired_distance;
+
+        line_width = 5;
 
     robot_distance = zeros(5, iterations); % Pour stocker les distances entre les robots et le temps
     goal_distance = []; % Pour stocker les distances aux objectifs lorsque atteints

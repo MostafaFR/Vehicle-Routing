@@ -1,13 +1,16 @@
-[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance] = parameters(dxi, state);
+[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
 
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
 
 % Configuration de la représentation graphique des connexions entre les robots
 x = r.get_poses(); % Obtention des positions des robots
 
-[L, weights, rows, cols, lf, ll] = set_laplacian(L, L_diamond, weights, weights_diamond, rows, cols, lf, x, line_width);
+[L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
 
-[font_size, line_width, g, goal_labels, follower_caption, follower_labels, leader_label] = Affichage(r, waypoints, g, goal_labels, N, follower_labels, font_size);
+[font_size, g, goal_labels, follower_caption] = Affichage(r, waypoints, N, line_width);
+
+% Configuration de l'affichage du leader
+leader_label = text(500, 500, 'Robot Leader', 'FontSize', font_size, 'FontWeight', 'bold', 'Color', 'r');
 
 start_time = tic;
 
@@ -234,7 +237,7 @@ function font_size = determine_font_size(robotarium_instance, font_height_meters
     font_size = cursize(4) * font_ratio;
 end
 
-function [font_size, line_width, g, goal_labels, follower_caption, follower_labels, leader_label] = Affichage(r, waypoints, g, goal_labels, N, follower_labels, font_size)
+function [font_size, g, goal_labels, follower_caption, follower_labels] = Affichage(r, waypoints, N, line_width)
     %% Configuration de l'affichage
 
     % Vecteur de couleurs pour l'affichage
@@ -243,7 +246,6 @@ function [font_size, line_width, g, goal_labels, follower_caption, follower_labe
     % Tailles des marqueurs, des polices et des lignes
     marker_size_goal = determine_marker_size(r, 0.20);
     font_size = determine_font_size(r, 0.05);
-    line_width = 5;
 
     % Création des marqueurs et des textes pour les objectifs
     for i = 1:length(waypoints)
@@ -257,12 +259,9 @@ function [font_size, line_width, g, goal_labels, follower_caption, follower_labe
         follower_caption{j} = sprintf('RS %d', j); % Texte d'identification du robot suiveur
         follower_labels{j} = text(500, 500, follower_caption{j}, 'FontSize', font_size, 'FontWeight', 'bold');
     end
-
-    % Configuration de l'affichage du leader
-    leader_label = text(500, 500, 'Robot Leader', 'FontSize', font_size, 'FontWeight', 'bold', 'Color', 'r');
 end
 
-function [L, weights, rows, cols, lf, ll] = set_laplacian(L, L_diamond, weights, weights_diamond, rows, cols, lf, x, line_width)
+function [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
     L = L_diamond; % Initialisation de la matrice Laplacienne (formation en diamant)
     weights = weights_diamond; % Initialisation des poids pour les distances
 
