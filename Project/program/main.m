@@ -7,10 +7,8 @@ x = r.get_poses(); % Obtention des positions des robots
 
 [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
 
-[font_size, g, goal_labels, follower_caption, follower_labels, leader_label] = Affichage(r, waypoints, obstacles, N, line_width);
+[font_size, g, goal_labels, follower_caption, follower_labels, leader_label, angular_velocity_arrows] = Affichage(r, waypoints, obstacles, N, line_width, x);
 start_time = tic;
-
-angular_velocity_arrows = set_angular_velocity_arrows(N, x);
 
 if (plot_live == 1)
     [plot1, plot2] = subplots(r);
@@ -101,15 +99,10 @@ for t = 1:iterations
         state = next_state; % Passage à l'état suivant si le waypoint actuel est atteint
     end
 
-    list_omega(t) = abs(x(3, 1)) % Stockage de la vitesse angulaire du leader
-    list_V(t) = dxu(1, 1); % Stockage de la vitesse linéaire du leader
+    list_omega = [list_omega; dxu(2, 1)]; % Stockage de la vitesse angulaire du leader
+    list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
     leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
     leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
-
-    if t > 1
-        deriv_leader_speeds(t - 1) = leader_speeds(t) - leader_speeds(t - 1);
-        deriv_leader_angular_speeds(t - 1) = leader_angular_speeds(t) - leader_angular_speeds(t - 1);
-    end
 
     %% Éviter les erreurs de l'actionneur
     norms = arrayfun(@(x) norm(dxi(:, x)), 1:N);
@@ -182,6 +175,11 @@ for t = 1:iterations
     r.step();
 end
 
+for t= 1:iterations
+    deriv_leader_speeds(t) = leader_speeds(t + 1) - leader_speeds(t);
+    deriv_leader_angular_speeds(t) = leader_angular_speeds(t + 1) - leader_angular_speeds(t);
+end
+
 if (plot_live == 0)
     %% Graphiques pour omega et V dans des subplots
     figure;
@@ -247,7 +245,7 @@ function font_size = determine_font_size(robotarium_instance, font_height_meters
     font_size = cursize(4) * font_ratio;
 end
 
-function [font_size, g, goal_labels, follower_caption, follower_labels, leader_label] = Affichage(r, waypoints, obstacles, N, line_width)
+function [font_size, g, goal_labels, follower_caption, follower_labels, leader_label, angular_velocity_arrows] = Affichage(r, waypoints, obstacles, N, line_width, x)
     %% Configuration de l'affichage
 
     % Vecteur de couleurs pour l'affichage
@@ -273,6 +271,8 @@ function [font_size, g, goal_labels, follower_caption, follower_labels, leader_l
         follower_caption{j} = sprintf('RS %d', j); % Texte d'identification du robot suiveur
         follower_labels{j} = text(500, 500, follower_caption{j}, 'FontSize', font_size, 'FontWeight', 'bold');
     end
+
+    angular_velocity_arrows = set_angular_velocity_arrows(N, x);
 
 end
 

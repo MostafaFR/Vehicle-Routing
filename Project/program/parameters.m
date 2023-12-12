@@ -36,10 +36,10 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
     close_enough = 0.2; % Seuil de proximité aux waypoints
 
     % Initialisation des tableaux pour stocker les vitesses/acceleration linéaire et angulaire du leader
-    list_omega = zeros(1, iterations); 
-    list_V = zeros(1, iterations);
-    leader_speeds = zeros(1, iterations);
-    leader_angular_speeds = zeros(1, iterations);
-    deriv_leader_speeds = zeros(1, iterations);
-    deriv_leader_angular_speeds = zeros(1, iterations);
+    list_omega = [];
+    list_V = [];
+    leader_speeds = [];
+    leader_angular_speeds = [];
+    deriv_leader_speeds = [];
+    deriv_leader_angular_speeds = [];
 end

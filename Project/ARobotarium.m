@@ -18,7 +18,7 @@ classdef ARobotarium < handle
         base_length = 0.105;
         collision_diameter = 0.135;
         collision_offset = 0.025;       
-        boundaries = [-1.6, 1.6, -1, 1];      
+        boundaries = [-1.6, 1.6, -1.4, 1.4];      
     end
     
     properties (GetAccess = public, SetAccess = protected)
