@@ -33,7 +33,7 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
     % Waypoints pour la navigation du leader
     waypoints = [-1 0.8; -1 -0.8; 1 -0.8; 1 0.8]';
     obstacles = [-1 0; 0 -0.8; 1 0; 0 0.8]';
-    close_enough = 0.2; % Seuil de proximité aux waypoints
+    close_enough = 0.1; % Seuil de proximité aux waypoints
 
     % Initialisation des tableaux pour stocker les vitesses/acceleration linéaire et angulaire du leader
     list_omega = [];

@@ -1,4 +1,4 @@
-[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
+[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
 
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
 
@@ -7,11 +7,7 @@ x = r.get_poses(); % Obtention des positions des robots
 
 [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
 
-[font_size, g, goal_labels, follower_caption] = Affichage(r, waypoints, N, line_width);
-
-% Configuration de l'affichage du leader
-leader_label = text(500, 500, 'Robot Leader', 'FontSize', font_size, 'FontWeight', 'bold', 'Color', 'r');
-
+[font_size, g, goal_labels, follower_caption, follower_labels, leader_label] = Affichage(r, waypoints, obstacles, N, line_width);
 start_time = tic;
 
 angular_velocity_arrows = set_angular_velocity_arrows(N, x);
@@ -78,11 +74,24 @@ for t = 1:iterations
     distance_to_waypoint = norm(x(1:2, 1) - waypoint); % Distance au waypoint actuel
 
     if distance_to_waypoint < close_enough
-        angle_to_next_waypoint = atan2(next_waypoint(2) - x(2, 1), next_waypoint(1) - x(1, 1)); % Angle vers le waypoint suivant
-        omega = 1.5 * wrapToPi(angle_to_next_waypoint - x(3, 1)); % Calcul de la vitesse angulaire pour atteindre le waypoint suivant
+        % Calcul de l'angle vers le waypoint suivant
+        angle_to_target = atan2(next_waypoint(2) - x(2, 1), next_waypoint(1) - x(1, 1));
     else
-        omega = 1.5 * wrapToPi(angle_to_waypoint - x(3, 1)); % Calcul de la vitesse angulaire pour atteindre le waypoint actuel
+        % Calcul de l'angle vers le waypoint actuel
+        angle_to_target = atan2(waypoint(2) - x(2, 1), waypoint(1) - x(1, 1));
     end
+
+    % Facteur de contrôle pour ajuster la vitesse angulaire
+    omega_gain = 1.3; % Vous pouvez ajuster ce facteur selon vos besoins
+
+    % Calcul de la vitesse angulaire en fonction de l'angle vers la cible
+    omega = omega_gain * wrapToPi(angle_to_target - x(3, 1));
+
+    % if (t > 1)
+    %     variation_angle_leader = abs(x(3, 1)) - leader_angular_speeds(t - 1);
+    %     V = abs(0.2 * cos(angle_to_target - x(3, 1)));
+    %     fprintf('Vitesse linéaire du leader : %f\n', V')
+    % end
 
     V = 2; % Vitesse linéaire du leader
     V = min(V, r.max_linear_velocity); % Limite de la vitesse linéaire
@@ -93,16 +102,18 @@ for t = 1:iterations
     end
 
     list_omega = [list_omega abs(x(3, 1))]; % Stockage de la vitesse angulaire du leader
-    list_V = [list_V V]; % Stockage de la vitesse linéaire du leader
+    list_V = [list_V dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
+    leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
+    leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
 
     if t > 1
-        deriv_leader_speeds(t - 1) = norm([x(1:2, 1) - x(1:2, 2)], 2) - norm([x(1:2, 1) - x(1:2, 2)], 2);
-        deriv_leader_angular_speeds(t - 1) = norm(x(3, 1) - x(3, 2), 2) - norm(x(3, 1) - x(3, 2), 2);
+        deriv_leader_speeds(t - 1) = leader_speeds(t) - leader_speeds(t - 1);
+        deriv_leader_angular_speeds(t - 1) = leader_angular_speeds(t) - leader_angular_speeds(t - 1);
     end
 
     %% Éviter les erreurs de l'actionneur
     norms = arrayfun(@(x) norm(dxi(:, x)), 1:N);
-    threshold = 4/5 * r.max_linear_velocity;
+    threshold = 3/4 * r.max_linear_velocity;
     to_thresh = norms > threshold;
     dxi(:, to_thresh) = threshold * dxi(:, to_thresh) ./ norms(to_thresh);
 
@@ -113,12 +124,11 @@ for t = 1:iterations
     %% Envoyer les vitesses aux robots
     r.set_velocities(1:N, dxu);
 
-    
     %% Mise à jour des éléments graphiques
     for q = 1:N - 1
         follower_labels{q}.Position = x(1:2, q + 1) + [-0.15; 0.15];
     end
-    
+
     % Connexions entre les robots suiveurs
     for m = 1:length(rows)
         lf(m).XData = [x(1, rows(m)), x(1, cols(m))];
@@ -173,7 +183,21 @@ for t = 1:iterations
 end
 
 if (plot_live == 0)
-    %% Affichage des graphiques pour omega et V dans des subplots
+    %% Graphiques pour omega et V dans des subplots
+    figure;
+    subplot(2, 1, 1);
+    plot(2:iterations, deriv_leader_speeds);
+    title('Dérivée de la Vitesse Linéaire du Leader');
+    xlabel('Itération');
+    ylabel('Dérivée de la Vitesse');
+
+    subplot(2, 1, 2); % Deuxième subplot pour V
+    plot(list_V);
+    title('V');
+    xlabel('Temps');
+    ylabel('Vitesse');
+    ylim([0, r.max_linear_velocity]); % Échelle pour V
+
     figure;
     subplot(2, 1, 1); % Premier subplot pour omega
     plot(list_omega);
@@ -184,27 +208,13 @@ if (plot_live == 0)
     yticks([0, pi / 2, pi]); % Définir les marques spécifiques sur l'axe des y
     yticklabels({'0', '\pi/2', '\pi'}); % Étiqueter les marques de l'axe des y
 
-    subplot(2, 1, 2); % Deuxième subplot pour V
-    plot(list_V);
-    title('V');
-    xlabel('Temps');
-    ylabel('Vitesse');
-    ylim([0, r.max_linear_velocity]); % Échelle pour V
+    subplot(2, 1, 2);
+    plot(2:iterations, deriv_leader_angular_speeds);
+    title('Dérivée de la Vitesse Angulaire du Leader');
+    xlabel('Itération');
+    ylabel('Dérivée de la Vitesse Angulaire');
+
 end
-
-% Affichage des graphiques des dérivées
-figure;
-subplot(2, 1, 1);
-plot(2:iterations, deriv_leader_speeds);
-title('Dérivée de la Vitesse Linéaire du Leader');
-xlabel('Itération');
-ylabel('Dérivée de la Vitesse');
-
-subplot(2, 1, 2);
-plot(2:iterations, deriv_leader_angular_speeds);
-title('Dérivée de la Vitesse Angulaire du Leader');
-xlabel('Itération');
-ylabel('Dérivée de la Vitesse Angulaire');
 
 % Sauvegarde des données
 save('DonneesDistance.mat', 'robot_distance');
@@ -237,7 +247,7 @@ function font_size = determine_font_size(robotarium_instance, font_height_meters
     font_size = cursize(4) * font_ratio;
 end
 
-function [font_size, g, goal_labels, follower_caption, follower_labels] = Affichage(r, waypoints, N, line_width)
+function [font_size, g, goal_labels, follower_caption, follower_labels, leader_label] = Affichage(r, waypoints, obstacles, N, line_width)
     %% Configuration de l'affichage
 
     % Vecteur de couleurs pour l'affichage
@@ -247,10 +257,14 @@ function [font_size, g, goal_labels, follower_caption, follower_labels] = Affich
     marker_size_goal = determine_marker_size(r, 0.20);
     font_size = determine_font_size(r, 0.05);
 
+    % Configuration de l'affichage du leader
+    leader_label = text(500, 500, 'Robot Leader', 'FontSize', font_size, 'FontWeight', 'bold', 'Color', 'r');
+
     % Création des marqueurs et des textes pour les objectifs
     for i = 1:length(waypoints)
         goal_caption = sprintf('G%d', i); % Texte d'identification de l'objectif
         g(i) = plot(waypoints(1, i), waypoints(2, i), 's', 'MarkerSize', marker_size_goal, 'LineWidth', line_width, 'Color', CM(i)); % Carré coloré pour l'objectif
+        plot(obstacles(1, :), obstacles(2, :), 'o', 'LineWidth', 1)
         goal_labels{i} = text(waypoints(1, i) - 0.05, waypoints(2, i), goal_caption, 'FontSize', font_size, 'FontWeight', 'bold'); % Texte dans l'objectif
     end
 
@@ -259,6 +273,7 @@ function [font_size, g, goal_labels, follower_caption, follower_labels] = Affich
         follower_caption{j} = sprintf('RS %d', j); % Texte d'identification du robot suiveur
         follower_labels{j} = text(500, 500, follower_caption{j}, 'FontSize', font_size, 'FontWeight', 'bold');
     end
+
 end
 
 function [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
@@ -294,7 +309,7 @@ function [plot1, plot2] = subplots(r)
     xlabel('Temps');
     ylabel('Vitesse');
     ylim([0, r.max_linear_velocity]);
-    
+
 end
 
 function angular_velocity_arrows = set_angular_velocity_arrows(N, x)
