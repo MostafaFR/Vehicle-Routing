@@ -1,4 +1,4 @@
-function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
+function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
     %% Constantes de l'expérience
     iterations = 4000; % Nombre d'itérations de l'expérience
     plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
@@ -36,8 +36,10 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
     close_enough = 0.2; % Seuil de proximité aux waypoints
 
     % Initialisation des tableaux pour stocker les vitesses/acceleration linéaire et angulaire du leader
-    list_omega = [];
-    list_V = [];
-    deriv_leader_speeds = [];
-    deriv_leader_angular_speeds = [];
+    list_omega = zeros(1, iterations); 
+    list_V = zeros(1, iterations);
+    leader_speeds = zeros(1, iterations);
+    leader_angular_speeds = zeros(1, iterations);
+    deriv_leader_speeds = zeros(1, iterations);
+    deriv_leader_angular_speeds = zeros(1, iterations);
 end

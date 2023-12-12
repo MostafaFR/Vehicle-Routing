@@ -1,4 +1,4 @@
-[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
+[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
 
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
 
@@ -101,8 +101,8 @@ for t = 1:iterations
         state = next_state; % Passage à l'état suivant si le waypoint actuel est atteint
     end
 
-    list_omega = [list_omega abs(x(3, 1))]; % Stockage de la vitesse angulaire du leader
-    list_V = [list_V dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
+    list_omega(t) = abs(x(3, 1)) % Stockage de la vitesse angulaire du leader
+    list_V(t) = dxu(1, 1); % Stockage de la vitesse linéaire du leader
     leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
     leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
 
@@ -294,7 +294,7 @@ end
 function [plot1, plot2] = subplots(r)
     % Création de la figure et des subplots
     figure;
-    subplot1 = subplot(2, 1, 1);
+    subplot(2, 1, 1);
     plot1 = plot(NaN, NaN); % Création d'un objet de ligne vide
     title('Omega');
     xlabel('Temps');
@@ -303,7 +303,7 @@ function [plot1, plot2] = subplots(r)
     yticks([0, pi / 2, pi]); % Définir les marques spécifiques sur l'axe des y
     yticklabels({'0', '\pi/2', '\pi'}); % Étiqueter les marques de l'axe des y
 
-    subplot2 = subplot(2, 1, 2);
+    subplot(2, 1, 2);
     plot2 = plot(NaN, NaN); % Création d'un objet de ligne vide
     title('V');
     xlabel('Temps');
