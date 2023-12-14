@@ -11,7 +11,7 @@ function [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices
                        d 0 d d 0; % Distances du robot 2 aux autres
                        0 d 0 d d; % Distances du robot 3 aux autres
                        0 d d 0 d; % Distances du robot 4 aux autres
-                       0 0 d d 0]; % Distances du robot 5 aux autres
+                       0 (2 * sqrt(2) * d) d d 0]; % Distances du robot 5 aux autres
 
     % Matrice Laplacienne pour la formation en ligne
     L_line = [1 -1 0 0 0
@@ -21,9 +21,9 @@ function [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices
               0 0 0 -1 1];
 
     % Poids pour les distances entre les robots en formation en ligne
-    weights_line = [0 (d/3) 0 0 0; % Distances du leader aux autres
-                    (d/3) 0 (d/3) 0 0; % Distances du robot 2 aux autres
-                    0 (d/3) 0 (d/3) 0; % Distances du robot 3 aux autres
-                    0 0 (d/3) 0 (d/3); % Distances du robot 4 aux autres
-                    0 0 2*(d/3) (d/3) 0]; % Distances du robot 5 aux autres
+    weights_line = [0, d, 2 * d, 3 * d, 4 * d
+                    d, 0, d, 2 * d, 3 * d
+                    2 * d, d, 0, d, 2 * d
+                    3 * d, 2 * d, d, 0, d
+                    4 * d, 3 * d, 2 * d, d, 0];
 end
