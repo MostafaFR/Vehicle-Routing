@@ -1,6 +1,6 @@
 function [x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
-    close all; % Ferme toutes les fenêtres de figure
     clear;     % Efface toutes les variables de l'espace de travail
+    close all; % Ferme toutes les fenêtres de figure
     clc; % Nettoie la fenêtre de commande
     %% Constantes de l'expérience
     iterations = 5000; % Nombre d'itérations de l'expérience

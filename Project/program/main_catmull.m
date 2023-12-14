@@ -27,7 +27,7 @@ curvePoints = calculateCatmullRomCurve(initial_points, numPoints); % Calculer la
 % Tracez la courbe de Catmull-Rom
 curve_x = curvePoints(:, 1);
 curve_y = curvePoints(:, 2);
-curve_line = plot(curve_x, curve_y, 'm-', 'LineWidth', 2); % Tracez la courbe en magenta
+curve_line = plot(curve_x, curve_y, 'g', 'LineWidth', 2); % Tracez la courbe en magenta
 hold on;
 
 r.step();
@@ -167,12 +167,16 @@ for t = 2:iterations
         weights = weights_line;
         % Supprimer les connexions existantes
         delete(lf);
+        delete(ll);
         % Créer de nouvelles connexions entre les robots suiveurs
         [rows, cols] = find(L == -1);
 
         for k = 1:length(rows)
             lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
         end
+
+        % Connexion du leader (supposée seulement entre le premier et le deuxième robot)
+        ll = line([x(1, 1), x(1, 2)], [x(2, 1), x(2, 2)], 'LineWidth', line_width, 'Color', 'r');
 
     end
 
@@ -182,12 +186,16 @@ for t = 2:iterations
         weights = weights_diamond;
         % Supprimer les connexions existantes
         delete(lf);
+        delete(ll);
         % Créer de nouvelles connexions entre les robots suiveurs
         [rows, cols] = find(L == -1);
 
         for k = 1:length(rows)
             lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
         end
+
+        % Connexion du leader (supposée seulement entre le premier et le deuxième robot)
+        ll = line([x(1, 1), x(1, 2)], [x(2, 1), x(2, 2)], 'LineWidth', line_width, 'Color', 'r');
 
     end
 
@@ -246,9 +254,7 @@ for t = 2:iterations
         control_points = [control_points; control_points(1, :)]; % Boucler sur le premier point pour continuité
         curvePoints = calculateCatmullRomCurve(control_points, numPoints); % Recalcul de la courbe
         % Supprimer tous les points de la courbe jusqu'a waypoints(:, next_indices(1))'
-        curvePoints = curvePoints(waypoint_index-10:end, :);
-        disp(control_points);
-        disp(next_indices);
+        curvePoints = curvePoints(waypoint_index - 10:end, :);
         waypoint_index = 1; % Réinitialisation de l'index de la courbe
         set(curve_line, 'XData', curvePoints(:, 1), 'YData', curvePoints(:, 2)); % Mise à jour de la courbe
 
