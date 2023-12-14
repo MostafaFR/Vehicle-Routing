@@ -1,9 +1,6 @@
-[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
+[x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width]  = parameters();
 
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
-
-% Configuration de la représentation graphique des connexions entre les robots
-x = r.get_poses(); % Obtention des positions des robots
 
 [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
 
@@ -176,7 +173,7 @@ for t = 1:iterations
     r.step();
 end
 
-for t= 1:iterations
+for t= 1:iterations-1
     deriv_leader_speeds(t) = leader_speeds(t + 1) - leader_speeds(t);
     deriv_leader_angular_speeds(t) = leader_angular_speeds(t + 1) - leader_angular_speeds(t);
 end

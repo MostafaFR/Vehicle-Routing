@@ -26,7 +26,6 @@ L(2:N, 2:N) = followers;
 L(2, 2) = L(2, 2) + 1;
 L(2, 1) = -1;
 
-
 %Initialize velocity vector
 dxi = zeros(2, N);
 
@@ -284,5 +283,6 @@ function font_size = determine_font_size(robotarium_instance, font_height_meters
     % Determine the font size in points so it fits the window. cursize(4) is
     % the hight of the figure window in points.
     font_size = cursize(4) * font_ratio;
+end
 
 end

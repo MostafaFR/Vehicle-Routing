@@ -160,6 +160,10 @@ classdef Robotarium < ARobotarium
 
         end
 
+        function velocities = get_velocities(this)
+            velocities = this.velocities;
+        end
+
     end
 
 end

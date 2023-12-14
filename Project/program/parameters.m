@@ -1,6 +1,9 @@
-function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
+function [x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
+    close all; % Ferme toutes les fenêtres de figure
+    clear;     % Efface toutes les variables de l'espace de travail
+    clc; % Nettoie la fenêtre de commande
     %% Constantes de l'expérience
-    iterations = 1000; % Nombre d'itérations de l'expérience
+    iterations = 5000; % Nombre d'itérations de l'expérience
     plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
 
     %% Mise en place de l'objet Robotarium
@@ -27,6 +30,8 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
     si_to_uni_dyn = create_si_to_uni_dynamics('LinearVelocityGain', 1.5);
     % Certificats de barrière single-integrator
     uni_barrier_cert = create_uni_barrier_certificate_with_boundary();
+    % Single-integrator position controller
+    leader_controller = create_si_position_controller('XVelocityGain', 0.8, 'YVelocityGain', 0.8, 'VelocityMagnitudeLimit', 0.1);
     % Transformation de la dynamique unicycle en single-integrator
     [~, uni_to_si_states] = create_si_to_uni_mapping();
 
@@ -42,4 +47,23 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
     leader_angular_speeds = [];
     deriv_leader_speeds = [];
     deriv_leader_angular_speeds = [];
+
+    %% LOCALISATION
+    x = r.get_poses();
+    odometer(:, 1, :) = x(:, :); % Valeurs obtenues par la localisation
+    expected_odometer(:, 1, :) = odometer(:, 1, :); % Valeurs réelles
+
+    Qu = [0.5 * 10 ^ -4 0; 0 0.5 * 10 ^ -4] * 0; %covariance associée aux bruits du vecteur d'entrée
+    Q = [0.6 * 10 ^ -5 0 0; 0 0.4 * 10 ^ -5 0; 0 0 10 ^ -5]; %covariance du bruit de modèle
+    podo = [1 0 0; 0 1 0; 0 0 0.5]; %valeur initiale de la matrice de covariance P
+
+    tfault1 = [20:50, 200:260];
+    tfault2 = [20:50, 80:100, 340:400];
+    tfault3 = [150:180, 370:450];
+    tfault4 = [400:500, 1700:2500];
+
+    sigmax = zeros(iterations, 1);
+    sigmay = zeros(iterations, 1);
+
+    R = 10 ^ -5; %covariance du bruit de mesure
 end

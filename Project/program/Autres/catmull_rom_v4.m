@@ -1,6 +1,9 @@
-[x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
+[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
 
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
+
+% Configuration de la représentation graphique des connexions entre les robots
+x = r.get_poses(); % Obtention des positions des robots
 
 [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
 
@@ -31,167 +34,46 @@ curve_line = plot(curve_x, curve_y, 'm-', 'LineWidth', 2); % Tracez la courbe en
 hold on;
 
 r.step();
+% COMMUNICATION DE LA FORMATION EN BLE 5.0
+time_iteration = []
+debit_theorique = 2; % en Mbps
+portee_max = 10; % en m
 
-for t = 2:iterations
-    % LOCALISATION
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Retrieve the most recent poses from the Robotarium.  The time delay is
-    % approximately 0.033 seconds
-    pose = r.get_poses();
-    expected_odometer(:, t, :) = pose(:, :);
-    velocities = r.get_velocities() + normrnd(0, 0.001);
+for t = 1:iterations
 
-    for i = 1:N
-        % Prédiction
-        A = [cos(odometer(3, t - 1, i)) 0; sin(odometer(3, t - 1, i)) 0; 0 1];
-        odometer(:, t, i) = odometer(:, t - 1, i) + A * [r.time_step * velocities(1, i); r.time_step * velocities(2, i)]; % delta_k, omega_k
+    current_time_iteration = tic;
+    % Changement de formation en ligne au cours du temps
+    if (t == 1000)
+        L = L_line;
+        weights = weights_line;
+        % Supprimer les connexions existantes
+        delete(lf);
+        % Créer de nouvelles connexions entre les robots suiveurs
+        [rows, cols] = find(L == -1);
 
-        FF = [1 0 -r.time_step * velocities(1, i) * sin(odometer(3, t - 1, i)); 0 1 r.time_step * velocities(1, i) * cos(odometer(3, t - 1, i)); 0 0 1]; %delta_k
-        podo = FF * podo * FF' + Q; %
-
-        X = odometer(:, t, i); % vecteur d'état prédit
-        Y = inv(podo); % matrice informationnelle
-        y = Y * X; % vecteur informationnel
-        Yp = inv(podo); %matrice informationnelle
-        yp = Yp * X; %vecteur informationnel
-
-        % Update
-        % Calcul des distances entre les amers et les coordonnées réelles du
-        % robot à l'instant t
-        d1 = sqrt((expected_odometer(1, t, i) - waypoints(1, 1)) .^ 2 + (expected_odometer(2, t, i) - waypoints(2, 1)) .^ 2);
-        d2 = sqrt((expected_odometer(1, t, i) - waypoints(1, 2)) .^ 2 + (expected_odometer(2, t, i) - waypoints(2, 2)) .^ 2);
-        d3 = sqrt((expected_odometer(1, t, i) - waypoints(1, 3)) .^ 2 + (expected_odometer(2, t, i) - waypoints(2, 3)) .^ 2);
-        d4 = sqrt((expected_odometer(1, t, i) - waypoints(1, 4)) .^ 2 + (expected_odometer(2, t, i) - waypoints(2, 4)) .^ 2);
-        % On crée le vecteur z en ajoutant un bruit blanc pour simuler le
-        % capteur LIDAR --> ne pas mettre + que 0.001, sinon plus de "bonne
-        % correction$
-        z = [d1 + normrnd(0, 0.001); d2 + normrnd(0, 0.001); d3 + normrnd(0, 0.001); d4 + normrnd(0, 0.001)];
-
-        % Injection de défauts sur les 4 capteurs de distance sur un intervalle donné
-        if find(tfault1 == t)
-            z(1) = z(1) + 0.05;
-        end
-
-        if find(tfault2 == t)
-            z(2) = z(2) + 0.05;
-        end
-
-        if find(tfault3 == t)
-            z(3) = z(3) + 0.05;
-        end
-
-        if find(tfault4 == t)
-            z(4) = z(4) + 0.05;
-        end
-
-        % initialisation des gains informationnels
-        % Sans détection de défauts
-        gI = zeros(3, 3);
-        gi = zeros(3, 1);
-        % Avec détection de défauts
-        sgI = zeros(3, 3);
-        sgi = zeros(3, 1);
-        gI = [];
-        gi = [];
-        th_part = chi2inv(0.9, 3);
-
-        n = length(waypoints);
-        %% detection défaut - choix
-        for j = 1:n
-            % zestime=sqrt((X(1)-waypoints(1,j))^2+(X(2)-waypoints(2,j))^2);
-            % H=[(X(1)-waypoints(1,j))/zestime, (X(2)-waypoints(2,j))/zestime,0]; % jacobienne
-            % gI = gI+H'*inv(R)*H; % contribution informationnelle associée à la matrice
-            % nu=z(j)-zestime;
-            % gi=gi+H'inv(R)(nu+H*X); % contribution informationnelle associée au vecteur
-
-            %%%%%%%%%%%%%%%%%%%%%%%% DETECTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            zestime = sqrt((X(1) - waypoints(1, j)) ^ 2 + (X(2) - waypoints(2, j)) ^ 2);
-            H = [(X(1) - waypoints(1, j)) / zestime, (X(2) - waypoints(2, j)) / zestime, 0]; % jacobienne
-            gI{j} = H' * inv(R) * H; % contribution informationnelle associée à la mesure z(i)
-            sgI = sgI + gI{j};
-            nu = z(j) - zestime;
-            gi{j} = H' * inv(R) * [nu + H * X]; % contribution informtionnelle associée à la mesure z(i)
-            sgi = sgi + gi{j};
-
-            r_isol{t}(j) = diagnostic(gI{j}, gi{j}, yp, Yp, X); %résidu pour l'isolation des défauts
-
-        end
-
-        %% Mise à jour finale sans détection de défauts
-        % Y=Y+gI; % Mise à jour matrice informationnelle
-        % y=y+gi; % Mise à jour du vecteur informationnel
-
-        % podo=inv(Y); % Mise à jour de la matrice de covariance
-        % odometer(:,t,i)=podo*y; % Mise à jour du vecteur d'état à l'instant t
-
-        %% Mise à jour finale avec détection de défauts
-        %%%%%%%%%%%%%%%%%%%%%%% detection de défaut %%%%%%%%%%%%%%%%%%%%%
-        [r_global(t), detect] = detection(sgi, sgI, yp, Yp, X);
-
-        % si défaut détecté=> exclusion des mesures erronées
-        if detect
-
-            for k = 1:n
-
-                if r_isol{t}(k) > th_part
-                    sgi = sgi - gi{k};
-                    sgI = sgI - gI{k};
-                end
-
-            end
-
-        end
-
-        %% correction phase
-        Yu = Yp + sgI; % matrice informationnelle mise à jour
-        yu = yp + sgi; % vecteur informationnel mis à jour
-
-        podo = inv(Yu); % matrice de covariance mise à jour
-        odometer(:, t, i) = podo * yu; % vecteur d'état mis à jour à l'instant t
-        % ################## FIN detection de défaut ##################
-
-        if i == 1 % On base notre étude uniquement sur le leader
-            sigmax(t) = sqrt(podo(1, 1));
-            sigmay(t) = sqrt(podo(2, 2));
+        for k = 1:length(rows)
+            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
         end
 
     end
 
-    x = odometer(:, t, :); % on assigne à x la prédiction finale de la localisation
+    % Changement de formation en diamant au cours du temps
+    if (t == 2000)
+        L = L_diamond;
+        weights = weights_diamond;
+        % Supprimer les connexions existantes
+        delete(lf);
+        % Créer de nouvelles connexions entre les robots suiveurs
+        [rows, cols] = find(L == -1);
 
-    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        for k = 1:length(rows)
+            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
+        end
 
-    % % Changement de formation en ligne au cours du temps
-    % if (t == 1000)
-    %     L = L_line;
-    %     weights = weights_line;
-    %     % Supprimer les connexions existantes
-    %     delete(lf);
-    %     % Créer de nouvelles connexions entre les robots suiveurs
-    %     [rows, cols] = find(L == -1);
-
-    %     for k = 1:length(rows)
-    %         lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
-    %     end
-
-    % end
-
-    % % Changement de formation en diamant au cours du temps
-    % if (t == 2000)
-    %     L = L_diamond;
-    %     weights = weights_diamond;
-    %     % Supprimer les connexions existantes
-    %     delete(lf);
-    %     % Créer de nouvelles connexions entre les robots suiveurs
-    %     [rows, cols] = find(L == -1);
-
-    %     for k = 1:length(rows)
-    %         lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
-    %     end
-
-    % end
+    end
 
     %% Mise à jour des positions des robots
+    x = r.get_poses(); % Récupération des poses les plus récentes du Robotarium
     xsi = uni_to_si_states(x); % Conversion en états single-integrator
 
     %% Algorithme de contrôle pour la formation
@@ -205,6 +87,8 @@ for t = 2:iterations
         end
 
     end
+
+    %% Logique de navigation du leader
 
     %% Logique de navigation du leader
     waypoint = waypoints(:, state); % Sélection du waypoint actuel
@@ -303,7 +187,7 @@ for t = 2:iterations
     end
 
     % Flèches de vitesse angulaire
-    for i = 1:1
+    for i = 1:N
         arrow_length = 0.2;
         arrow_dx = arrow_length * cos(x(3, i) + dxu(2, i));
         arrow_dy = arrow_length * sin(x(3, i) + dxu(2, i));
@@ -325,8 +209,15 @@ for t = 2:iterations
     end
 
     r.step();
-end
+    time_iteration = [time_iteration toc(current_time_iteration)];
+    % Calcul des distances entre les robots pour chaque itération
+    for i = 1:N
+        for j = 1:N
+            
 
+% Calcul du temps de simulation
+
+% Calculer les dérivées de la vitesse linéaire et angulaire du leader
 for t = 2:iterations
     deriv_leader_speeds(t) = leader_speeds(t) - leader_speeds(t - 1);
     deriv_leader_angular_speeds(t) = leader_angular_speeds(t) - leader_angular_speeds(t - 1);
@@ -336,17 +227,17 @@ if (plot_live == 0)
     %% Graphiques pour omega et V dans des subplots
     figure;
     subplot(2, 1, 1);
+    plot(2:iterations, deriv_leader_speeds);
+    title('Dérivée de la Vitesse Linéaire du Leader');
+    xlabel('Itération');
+    ylabel('Dérivée de la Vitesse');
+
+    subplot(2, 1, 2); % Deuxième subplot pour V
     plot(list_V);
     title('V');
     xlabel('Temps');
     ylabel('Vitesse');
     ylim([0, r.max_linear_velocity]); % Échelle pour V
-
-    subplot(2, 1, 2); % Deuxième subplot pour V
-    plot(1:iterations, deriv_leader_speeds);
-    title('Dérivée de la Vitesse Linéaire du Leader');
-    xlabel('Itération');
-    ylabel('Dérivée de la Vitesse');
 
     figure;
     subplot(2, 1, 1); % Premier subplot pour omega
@@ -359,120 +250,12 @@ if (plot_live == 0)
     yticklabels({'0', '\pi/2', '\pi'}); % Étiqueter les marques de l'axe des y
 
     subplot(2, 1, 2);
-    plot(1:iterations, deriv_leader_angular_speeds);
+    plot(2:iterations, deriv_leader_angular_speeds);
     title('Dérivée de la Vitesse Angulaire du Leader');
     xlabel('Itération');
     ylabel('Dérivée de la Vitesse Angulaire');
 
 end
-
-%% ##################### EVALUATION LOCALISATION #####################
-% On s'intéresse sur cette partie seulement à l'évaluation de la
-% localisation du robot leader
-figure; % Trajectoire réelle et trajectoire prédite
-plot(odometer(1, :, 1), odometer(2, :, 1), 'b');
-hold on % pour dessiner sur le même graphe
-plot(expected_odometer(1, :, 1), expected_odometer(2, :, 1), 'r');
-plot(waypoints(1, 1), waypoints(2, 1), '*g');
-plot(waypoints(1, 2), waypoints(2, 2), '*g');
-plot(waypoints(1, 3), waypoints(2, 3), '*g');
-plot(waypoints(1, 4), waypoints(2, 4), '*g');
-
-erx = expected_odometer(1, :, 1) - odometer(1, :, 1);
-ery = expected_odometer(2, :, 1) - odometer(2, :, 1);
-er = sqrt(erx .^ 2 + ery .^ 2);
-
-figure; % Plot de l'erreur globale au fil du temps
-plot(er);
-er = mean(er);
-
-% sdlkgnkdjgndg
-
-% Assuming 'iterations', 'sigmax', 'sigmay', 'erx', and 'ery' are defined
-
-% Create a new figure with two subplots
-figure;
-
-% Subplot for X errors
-subplot(2, 1, 1);
-plot(3 * sigmax(2:iterations), 'r', 'LineWidth', 1.5);
-hold on;
-plot(erx, 'b', 'LineWidth', 1.5);
-hold on;
-plot(-3 * sigmax(2:iterations), 'r', 'LineWidth', 1.5);
-title('Errors in X with 99.7% Confidence Interval');
-legend('3*sigma', 'X Errors', '-3*sigma');
-grid on;
-
-% Subplot for Y errors
-subplot(2, 1, 2);
-plot(3 * sigmay(2:iterations), 'r', 'LineWidth', 1.5);
-hold on;
-plot(ery, 'b', 'LineWidth', 1.5);
-hold on;
-plot(-3 * sigmay(2:iterations), 'r', 'LineWidth', 1.5);
-title('Errors in Y with 99.7% Confidence Interval');
-legend('3*sigma', 'Y Errors', '-3*sigma');
-grid on;
-
-% Adjust layout for better appearance
-sgtitle('Combined Errors in X and Y');
-
-% figure(4) % Erreurs en X et la région critique à 99.7%
-% plot(3*sigmax(2:iterations), 'r')
-% hold on
-% plot(erx,'b');
-% hold on
-% plot(-3*sigmax(2:iterations), 'r')
-%
-% figure(5) % Erreurs en Y et la région critique à 99.7%
-% plot(3*sigmay(2:iterations), 'r')
-% hold on
-% plot(ery,'b');
-% hold on
-% plot(-3*sigmay(2:iterations), 'r')
-
-% affiche les residus isolants
-figure;
-r1 = []; r2 = []; r3 = []; r4 = [];
-
-for i = 2:iterations
-    r1(i) = r_isol{i}(1);
-    r2(i) = r_isol{i}(2);
-    r3(i) = r_isol{i}(3);
-    r4(i) = r_isol{i}(4);
-end
-
-plot(r1, 'r');
-hold on;
-plot(r2, 'b');
-hold on;
-plot(r3, 'g');
-hold on;
-plot(r4, 'k');
-hold on;
-line([1 iterations], [th_part th_part], 'linewidth', 1, 'color', 'g');
-
-% affiche le residu global
-figure;
-plot(r_global);
-title('Residu global');
-xlabel('Temps (s)');
-ylabel('Residu global');
-grid on;
-
-%% Plot Communication
-% Plot and analyze packet loss rate
-% figure(6);
-% plot(1:iterations, packet_loss_data, 'b-', 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 5);
-% title('Packet Loss Rate Over Time');
-% xlabel('Time (iterations)');
-% ylabel('Packet Loss Rate');
-% ylim([0, communication_timeout]); % Set y-axis limit for better readability
-% grid on; % Add grid lines
-% legend('Packet Loss Rate');
-
-%%%%%%%%%%%%%%%%%%%%%%%%% EVALUATION LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Sauvegarde des données
 save('DonneesDistance.mat', 'robot_distance');
@@ -608,76 +391,6 @@ function curvePoints = calculateCatmullRomCurve(points, numPoints)
             curvePoints = [curvePoints; pt];
         end
 
-    end
-
-end
-
-%% COMMUNICATION Helper Function
-function perfect_communication = is_perfect_communication(x, communication_range)
-    % Check if communication is perfect
-    % For example, check if the robots are within communication range
-
-    % Assuming x is the matrix of robot positions and communication_range is the communication range
-    distances = pdist(x(1:2, :)', 'euclidean');
-    perfect_communication = all(distances <= communication_range);
-end
-
-function handle_reliable_communication()
-    % Implement reliable communication handling logic
-    % For example, log successful communication or take appropriate actions
-    disp('Communication is reliable. Log successful communication or take actions.');
-end
-
-function handle_obstacle_communication()
-    % Implement obstacle communication handling logic
-    % For example, log communication delay due to obstacle or take appropriate actions
-    %disp('Communication delay due to obstacle. Log the delay or take actions.');
-end
-
-function packet_loss = calculate_packet_loss(successful_communication, timeout_threshold)
-    % Simulate packet loss based on successful communication and timeout threshold
-    % For example, introduce a probability of packet loss or simulate based on conditions
-
-    % Assuming successful_communication is a logical indicating successful communication
-    % and timeout_threshold is the maximum time allowed for a communication attempt
-
-    if successful_communication
-        % Simulate packet loss with a certain probability (e.g., 10% chance of loss)
-        probability_of_loss = 0.05;
-
-        if rand() <= probability_of_loss
-            packet_loss = timeout_threshold; % Packet loss
-        else
-            packet_loss = 0; % No packet loss
-        end
-
-    else
-        packet_loss = timeout_threshold; % Communication timeout
-    end
-
-end
-
-function communication_delay = calculate_communication_delay(communication_status, obstacle_delay, bypass_speed, communication_timeout)
-    % Calculate communication delay based on different scenarios
-
-    switch communication_status
-        case 'perfect'
-            communication_delay = 0; % No delay for perfect communication
-        case 'obstacle'
-            % Delay due to obstacle, depends on how fast the robot will bypass the obstacle
-            communication_delay = obstacle_delay / bypass_speed;
-        case 'broken_link'
-            % Communication link is broken
-            % If the communication is not restored after communication_timeout seconds, display a message
-            if communication_timeout > 0
-                communication_delay = communication_timeout;
-                fprintf('Cannot re-establish connection. Communication link broken for %d seconds.\n', communication_timeout);
-            else
-                communication_delay = 0; % Communication timeout is 0, no delay
-            end
-
-        otherwise
-            error('Invalid communication status. Use ''perfect'', ''obstacle'', or ''broken_link''.');
     end
 
 end

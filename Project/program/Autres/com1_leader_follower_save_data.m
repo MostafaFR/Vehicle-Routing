@@ -297,8 +297,9 @@ for t = 2:iterations
 
         % si défaut détecté=> exclusion des mesures erronées
         if detect
+            disp(n)
 
-            for k = 1:n
+            for k = 1:N
 
                 if r_isol{t}(k) > th_part
                     sgi = sgi - gi{k};
@@ -396,6 +397,7 @@ for t = 2:iterations
     r.set_velocities(1:N, dxu);
 
     %% Update Plot Handles
+    
     %Update position of labels for followers
     for q = 1:N - 1
         follower_labels{q}.Position = x(1:2, q + 1) + [-0.15; 0.15];
