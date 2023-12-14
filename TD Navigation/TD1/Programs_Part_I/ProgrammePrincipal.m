@@ -77,8 +77,7 @@ end
  
 %%Exemple 2
 PositionsObstacles = [12  20.1
-                     14  19.3
-                     10 23];
+                     10 28];
  
 %%Instanciation des obstacles utilis�s dans la simulation
 Obstacle = CObstacle(); %Initialisation de la structure

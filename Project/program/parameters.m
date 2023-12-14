@@ -1,11 +1,11 @@
 function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
     %% Constantes de l'expérience
-    iterations = 4000; % Nombre d'itérations de l'expérience
+    iterations = 1000; % Nombre d'itérations de l'expérience
     plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
 
     %% Mise en place de l'objet Robotarium
     N = 5; % Nombre de robots
-    initial_positions = generate_initial_conditions(N, 'Width', 1, 'Height', 1, 'Spacing', 0.3); % Génération des positions initiales aléatoires
+    initial_positions = generate_initial_conditions(N, 'Width', 2, 'Height', 2, 'Spacing', 0.6); % Génération des positions initiales aléatoires
     r = Robotarium('NumberOfRobots', N, 'ShowFigure', true, 'InitialConditions', initial_positions); % Création de l'objet Robotarium avec les paramètres spécifiés
 
     %% Initialisation des variables
@@ -19,7 +19,7 @@ function [iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si
 
     dxi = zeros(2, N); % Initialisation du vecteur de vélocités
     state = 1; % État pour le leader
-    formation_control_gain = 10; % Paramètres de contrôle de la formation
+    formation_control_gain = 20; % Paramètres de contrôle de la formation
 
     %% Configuration des outils pour la dynamique unicycle
 

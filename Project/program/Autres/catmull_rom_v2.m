@@ -1,5 +1,48 @@
-[iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters();
+%% Constantes de l'expérience
+iterations = 4000; % Nombre d'itérations de l'expérience
+plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
 
+%% Mise en place de l'objet Robotarium
+N = 5; % Nombre de robots
+initial_positions = generate_initial_conditions(N, 'Width', 2, 'Height', 2, 'Spacing', 0.6); % Génération des positions initiales aléatoires
+r = Robotarium('NumberOfRobots', N, 'ShowFigure', true, 'InitialConditions', initial_positions); % Création de l'objet Robotarium avec les paramètres spécifiés
+
+%% Initialisation des variables
+desired_distance = 0.3; % Distance désirée entre les robots
+d = desired_distance;
+
+line_width = 5;
+
+robot_distance = zeros(5, iterations); % Pour stocker les distances entre les robots et le temps
+goal_distance = []; % Pour stocker les distances aux objectifs lorsque atteints
+
+dxi = zeros(2, N); % Initialisation du vecteur de vélocités
+state = 1; % État pour le leader
+formation_control_gain = 10; % Paramètres de contrôle de la formation
+
+%% Configuration des outils pour la dynamique unicycle
+
+% Transformation de la dynamique single-integrator en unicycle
+si_to_uni_dyn = create_si_to_uni_dynamics('LinearVelocityGain', 1.5);
+% Certificats de barrière single-integrator
+uni_barrier_cert = create_uni_barrier_certificate_with_boundary();
+% Single-integrator position controller
+leader_controller = create_si_position_controller('XVelocityGain', 0.8, 'YVelocityGain', 0.8, 'VelocityMagnitudeLimit', 0.1);
+% Transformation de la dynamique unicycle en single-integrator
+[~, uni_to_si_states] = create_si_to_uni_mapping();
+
+% Waypoints pour la navigation du leader
+waypoints = [-1 0.8; -1 -0.8; 1 -0.8; 1 0.8]';
+obstacles = [-1 0; 0 -0.8; 1 0; 0 0.8]';
+close_enough = 0.2; % Seuil de proximité aux waypoints
+
+% Initialisation des tableaux pour stocker les vitesses/acceleration linéaire et angulaire du leader
+list_omega = [];
+list_V = [];
+leader_speeds = [];
+leader_angular_speeds = [];
+deriv_leader_speeds = [];
+deriv_leader_angular_speeds = [];
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
 
 % Configuration de la représentation graphique des connexions entre les robots
@@ -14,40 +57,53 @@ if (plot_live == 1)
     [plot1, plot2] = subplots(r);
 end
 
+%
+%
+% -----------------------
+% Définition des points de contrôle pour la courbe de Catmull-Rom
+% -----------------------
+points = waypoints'; % Utiliser les waypoints comme points de contrôle
+points = [x(1:2, 1)'; points; points(1, :)]; % Ajouter la position du leader comme point de contrôle
+points = [points(1, :); points; points(end, :)]; % Ajouter des points supplémentaires
+
+fprintf('Points de contrôle pour la courbe de Catmull-Rom:\n');
+disp(points);
+
+numPoints = 100; % Nombre de points intermédiaires
+curvePoints = []; % Initialisation des points de la courbe
+waypoint_index = 1; % Index pour suivre la courbe Catmull-Rom
+
+% Calcul de la courbe
+for i = 1:length(points) - 3
+    P0 = points(i, :);
+    P1 = points(i + 1, :);
+    P2 = points(i + 2, :);
+    P3 = points(i + 3, :);
+
+    for t = 0:1 / numPoints:1
+        T = [1, t, t ^ 2, t ^ 3];
+        M = [0, 1, 0, 0;
+             -1, 0, 1, 0;
+             2, -2, 1, -1;
+             -1, 1, -1, 1];
+        G = [P0; P1; P2; P3];
+        pt = T * M * G;
+        curvePoints = [curvePoints; pt];
+    end
+
+end
+
+% Tracez la courbe de Catmull-Rom
+curve_x = curvePoints(:, 1);
+curve_y = curvePoints(:, 2);
+curve_line = plot(curve_x, curve_y, 'm-', 'LineWidth', 2); % Tracez la courbe en magenta
+hold on;
+
+%
+%
 r.step();
 
 for t = 1:iterations
-
-    % Changement de formation en ligne au cours du temps
-    if (t == 1000)
-        L = L_line;
-        weights = weights_line;
-        % Supprimer les connexions existantes
-        delete(lf);
-        % Créer de nouvelles connexions entre les robots suiveurs
-        [rows, cols] = find(L == -1);
-
-        for k = 1:length(rows)
-            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
-        end
-
-    end
-
-    % Changement de formation en diamant au cours du temps
-    if (t == 2000)
-        L = L_diamond;
-        weights = weights_diamond;
-        % Supprimer les connexions existantes
-        delete(lf);
-        % Créer de nouvelles connexions entre les robots suiveurs
-        [rows, cols] = find(L == -1);
-
-        for k = 1:length(rows)
-            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
-        end
-
-    end
-
     %% Mise à jour des positions des robots
     x = r.get_poses(); % Récupération des poses les plus récentes du Robotarium
     xsi = uni_to_si_states(x); % Conversion en états single-integrator
@@ -65,45 +121,34 @@ for t = 1:iterations
     end
 
     %% Logique de navigation du leader
-    waypoint = waypoints(:, state); % Sélection du waypoint actuel
+
+    %% Logique de navigation du leader
+    % waypoint = waypoints(:, state); % Sélection du waypoint actuel
     next_state = mod(state, size(waypoints, 2)) + 1; % Passage à l'état suivant
-    next_waypoint = waypoints(:, next_state); % Prochain waypoint
+    % next_waypoint = waypoints(:, next_state); % Prochain waypoint
 
-    angle_to_waypoint = atan2(waypoint(2) - x(2, 1), waypoint(1) - x(1, 1)); % Angle vers le waypoint actuel
-    distance_to_waypoint = norm(x(1:2, 1) - waypoint); % Distance au waypoint actuel
+    % Mise à jour de la position du leader
+    waypoint = curvePoints(waypoint_index, :)';
+    dxi(:, 1) = leader_controller(x(1:2, 1), waypoint);
 
-    if distance_to_waypoint < close_enough
-        % Calcul de l'angle vers le waypoint suivant
-        angle_to_target = atan2(next_waypoint(2) - x(2, 1), next_waypoint(1) - x(1, 1));
-    else
-        % Calcul de l'angle vers le waypoint actuel
-        angle_to_target = atan2(waypoint(2) - x(2, 1), waypoint(1) - x(1, 1));
+    if norm(x(1:2, 1) - waypoint) < close_enough
+        waypoint_index = waypoint_index + 1;
+
+        if waypoint_index > size(curvePoints, 1)
+            waypoint_index = 1; % Recommencer à suivre la courbe
+        else
+            % Supprimer la partie de la courbe parcourue
+            curvePoints = curvePoints(waypoint_index - 1:end, :); % Conserve uniquement les points non parcourus
+            set(curve_line, 'XData', curvePoints(:, 1), 'YData', curvePoints(:, 2)); % Mise à jour de la courbe
+        end
+
     end
 
-    % Facteur de contrôle pour ajuster la vitesse angulaire
-    omega_gain = 1.3; % Vous pouvez ajuster ce facteur selon vos besoins
-
-    % Calcul de la vitesse angulaire en fonction de l'angle vers la cible
-    omega = omega_gain * wrapToPi(angle_to_target - x(3, 1));
-
-    % if (t > 1)
-    %     variation_angle_leader = abs(x(3, 1)) - leader_angular_speeds(t - 1);
-    %     V = abs(0.2 * cos(angle_to_target - x(3, 1)));
-    %     fprintf('Vitesse linéaire du leader : %f\n', V')
-    % end
-
-    V = 2; % Vitesse linéaire du leader
-    V = min(V, r.max_linear_velocity); % Limite de la vitesse linéaire
-    dxu(:, 1) = [V; omega]; % Vecteur des vitesses linéaire et angulaire du leader
+    distance_to_waypoint = norm(x(1:2, 1) - waypoint); % Distance au waypoint actuel
 
     if distance_to_waypoint < close_enough
         state = next_state; % Passage à l'état suivant si le waypoint actuel est atteint
     end
-
-    list_omega = [list_omega; dxu(2, 1)]; % Stockage de la vitesse angulaire du leader
-    list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
-    leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
-    leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
 
     %% Éviter les erreurs de l'actionneur
     norms = arrayfun(@(x) norm(dxi(:, x)), 1:N);
@@ -112,8 +157,13 @@ for t = 1:iterations
     dxi(:, to_thresh) = threshold * dxi(:, to_thresh) ./ norms(to_thresh);
 
     %% Appliquer les certificats de barrière et la transformation en dynamique unicycle
-    dxu(:, 2:N) = si_to_uni_dyn(dxi(:, 2:N), x(:, 2:N));
+    dxu = si_to_uni_dyn(dxi, x);
     dxu = uni_barrier_cert(dxu, x);
+
+    list_omega = [list_omega; dxu(2, 1)]; % Stockage de la vitesse angulaire du leader
+    list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
+    leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
+    leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
 
     %% Envoyer les vitesses aux robots
     r.set_velocities(1:N, dxu);
@@ -176,7 +226,7 @@ for t = 1:iterations
     r.step();
 end
 
-for t= 1:iterations
+for t = 1:iterations
     deriv_leader_speeds(t) = leader_speeds(t + 1) - leader_speeds(t);
     deriv_leader_angular_speeds(t) = leader_angular_speeds(t + 1) - leader_angular_speeds(t);
 end
@@ -318,6 +368,27 @@ function angular_velocity_arrows = set_angular_velocity_arrows(N, x)
 
     for i = 1:N
         angular_velocity_arrows(i) = quiver(x(1, i), x(2, i), 0, 0, 'MaxHeadSize', 0.5, 'Color', 'm');
+    end
+
+end
+
+function curvePoints = calculateCatmullRomCurve(points, numPoints)
+    curvePoints = [];
+
+    for i = 1:length(points) - 3
+        P0 = points(i, :);
+        P1 = points(i + 1, :);
+        P2 = points(i + 2, :);
+        P3 = points(i + 3, :);
+
+        for t = 0:1 / numPoints:1
+            T = [1, t, t ^ 2, t ^ 3];
+            M = [0, 1, 0, 0; -1, 0, 1, 0; 2, -2, 1, -1; -1, 1, -1, 1];
+            G = [P0; P1; P2; P3];
+            pt = T * M * G;
+            curvePoints = [curvePoints; pt];
+        end
+
     end
 
 end

@@ -14,10 +14,34 @@ if (plot_live == 1)
     [plot1, plot2] = subplots(r);
 end
 
+% -----------------------
+% Définition des points de contrôle pour la courbe de Catmull-Rom
+% -----------------------
+numPoints = 100; % Nombre de points intermédiaires
+curvePoints = []; % Initialisation des points de la courbe
+waypoint_index = 1; % Index pour suivre la courbe Catmull-Rom
+
+initial_points = waypoints(:, 1:2)'; % Utiliser les waypoints comme points de contrôle
+initial_points = [x(1:2, 1)'; initial_points]; % Ajouter la position du leader comme point de contrôle
+initial_points = [initial_points(1, :); initial_points; initial_points(end, :)]; % Ajouter des points supplémentaires
+
+curvePoints = calculateCatmullRomCurve(initial_points, numPoints); % Calculer la courbe de Catmull-Rom
+
+% Tracez la courbe de Catmull-Rom
+curve_x = curvePoints(:, 1);
+curve_y = curvePoints(:, 2);
+curve_line = plot(curve_x, curve_y, 'm-', 'LineWidth', 2); % Tracez la courbe en magenta
+hold on;
+
 r.step();
+% COMMUNICATION DE LA FORMATION EN BLE 5.0
+time_iteration = []
+debit_theorique = 2; % en Mbps
+portee_max = 10; % en m
 
 for t = 1:iterations
 
+    current_time_iteration = tic;
     % Changement de formation en ligne au cours du temps
     if (t == 1000)
         L = L_line;
@@ -68,42 +92,46 @@ for t = 1:iterations
     waypoint = waypoints(:, state); % Sélection du waypoint actuel
     next_state = mod(state, size(waypoints, 2)) + 1; % Passage à l'état suivant
     next_waypoint = waypoints(:, next_state); % Prochain waypoint
-
-    angle_to_waypoint = atan2(waypoint(2) - x(2, 1), waypoint(1) - x(1, 1)); % Angle vers le waypoint actuel
     distance_to_waypoint = norm(x(1:2, 1) - waypoint); % Distance au waypoint actuel
 
-    if distance_to_waypoint < close_enough
-        % Calcul de l'angle vers le waypoint suivant
-        angle_to_target = atan2(next_waypoint(2) - x(2, 1), next_waypoint(1) - x(1, 1));
-    else
-        % Calcul de l'angle vers le waypoint actuel
-        angle_to_target = atan2(waypoint(2) - x(2, 1), waypoint(1) - x(1, 1));
+    % Mise à jour de la position du leader
+    target_point = curvePoints(waypoint_index, :)';
+    dxi(:, 1) = leader_controller(x(1:2, 1), target_point);
+
+    if norm(x(1:2, 1) - target_point) < 0.2
+        waypoint_index = waypoint_index + 1;
+
+        if waypoint_index > size(curvePoints, 1)
+            waypoint_index = 1; % Recommencer à suivre la courbe
+        else
+            % Supprimer la partie de la courbe parcourue
+            if (waypoint_index > 10)
+                curvePoints_maj = curvePoints(waypoint_index -10:end, :); % Conserve uniquement les points non parcourus
+                set(curve_line, 'XData', curvePoints_maj(:, 1), 'YData', curvePoints_maj(:, 2)); % Mise à jour de la courbe
+            end
+
+        end
+
     end
 
-    % Facteur de contrôle pour ajuster la vitesse angulaire
-    omega_gain = 1.3; % Vous pouvez ajuster ce facteur selon vos besoins
-
-    % Calcul de la vitesse angulaire en fonction de l'angle vers la cible
-    omega = omega_gain * wrapToPi(angle_to_target - x(3, 1));
-
-    % if (t > 1)
-    %     variation_angle_leader = abs(x(3, 1)) - leader_angular_speeds(t - 1);
-    %     V = abs(0.2 * cos(angle_to_target - x(3, 1)));
-    %     fprintf('Vitesse linéaire du leader : %f\n', V')
-    % end
-
-    V = 2; % Vitesse linéaire du leader
-    V = min(V, r.max_linear_velocity); % Limite de la vitesse linéaire
-    dxu(:, 1) = [V; omega]; % Vecteur des vitesses linéaire et angulaire du leader
-
     if distance_to_waypoint < close_enough
+
+        % Sélectionner les trois prochains waypoints
+        next_indices = state:min(state + 2, size(waypoints, 2));
+
+        if length(next_indices) < 3
+            next_indices = [next_indices, 1:(3 - length(next_indices))];
+        end
+
+        % Recalculer la courbe de Catmull-Rom avec les nouveaux waypoints
+        control_points = [x(1:2, 1)'; waypoints(:, next_indices(1))'; waypoints(:, next_indices(2))'; waypoints(:, next_indices(3))'];
+        control_points = [control_points; control_points(1, :)]; % Boucler sur le premier point pour continuité
+        curvePoints = calculateCatmullRomCurve(control_points, numPoints); % Recalcul de la courbe
+        waypoint_index = 1; % Réinitialisation de l'index de la courbe
+        set(curve_line, 'XData', curvePoints(:, 1), 'YData', curvePoints(:, 2)); % Mise à jour de la courbe
+
         state = next_state; % Passage à l'état suivant si le waypoint actuel est atteint
     end
-
-    list_omega = [list_omega; dxu(2, 1)]; % Stockage de la vitesse angulaire du leader
-    list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
-    leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
-    leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
 
     %% Éviter les erreurs de l'actionneur
     norms = arrayfun(@(x) norm(dxi(:, x)), 1:N);
@@ -112,8 +140,13 @@ for t = 1:iterations
     dxi(:, to_thresh) = threshold * dxi(:, to_thresh) ./ norms(to_thresh);
 
     %% Appliquer les certificats de barrière et la transformation en dynamique unicycle
-    dxu(:, 2:N) = si_to_uni_dyn(dxi(:, 2:N), x(:, 2:N));
+    dxu = si_to_uni_dyn(dxi, x);
     dxu = uni_barrier_cert(dxu, x);
+
+    list_omega = [list_omega; dxu(2, 1)]; % Stockage de la vitesse angulaire du leader
+    list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
+    leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
+    leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
 
     %% Envoyer les vitesses aux robots
     r.set_velocities(1:N, dxu);
@@ -169,16 +202,19 @@ for t = 1:iterations
     end
 
     % Calculer les distances aux objectifs
-    if (norm(x(1:2, 1) - waypoint) < close_enough)
+    if (distance_to_waypoint < close_enough)
         goal_distance = [goal_distance [norm(x(1:2, 1) - waypoint); toc(start_time)]];
     end
 
     r.step();
+    time_iteration = [time_iteration toc(current_time_iteration)];
 end
 
-for t= 1:iterations
-    deriv_leader_speeds(t) = leader_speeds(t + 1) - leader_speeds(t);
-    deriv_leader_angular_speeds(t) = leader_angular_speeds(t + 1) - leader_angular_speeds(t);
+disp(time_iteration)
+
+for t = 2:iterations
+    deriv_leader_speeds(t) = leader_speeds(t) - leader_speeds(t - 1);
+    deriv_leader_angular_speeds(t) = leader_angular_speeds(t) - leader_angular_speeds(t - 1);
 end
 
 if (plot_live == 0)
@@ -248,9 +284,7 @@ end
 
 function [font_size, g, goal_labels, follower_caption, follower_labels, leader_label, angular_velocity_arrows] = Affichage(r, waypoints, obstacles, N, line_width, x)
     %% Configuration de l'affichage
-
-    % Vecteur de couleurs pour l'affichage
-    CM = ['k', 'b', 'r', 'g'];
+    CM = ['k', 'b', 'r', 'g']; % Assurez-vous que cette ligne contient assez de couleurs pour tous vos waypoints
 
     % Tailles des marqueurs, des polices et des lignes
     marker_size_goal = determine_marker_size(r, 0.20);
@@ -259,8 +293,18 @@ function [font_size, g, goal_labels, follower_caption, follower_labels, leader_l
     % Configuration de l'affichage du leader
     leader_label = text(500, 500, 'Robot Leader', 'FontSize', font_size, 'FontWeight', 'bold', 'Color', 'r');
 
+    % Assurez-vous que le tableau CM a suffisamment de couleurs pour le nombre de waypoints
+    num_waypoints = size(waypoints, 2);
+
+    if length(CM) < num_waypoints
+        CM = repmat(CM, 1, ceil(num_waypoints / length(CM)));
+    end
+
+    % Initialisation du tableau g pour les marqueurs des waypoints
+    g = gobjects(1, num_waypoints);
+
     % Création des marqueurs et des textes pour les objectifs
-    for i = 1:length(waypoints)
+    for i = 1:num_waypoints
         goal_caption = sprintf('G%d', i); % Texte d'identification de l'objectif
         g(i) = plot(waypoints(1, i), waypoints(2, i), 's', 'MarkerSize', marker_size_goal, 'LineWidth', line_width, 'Color', CM(i)); % Carré coloré pour l'objectif
         plot(obstacles(1, :), obstacles(2, :), 'o', 'LineWidth', 1)
@@ -274,7 +318,6 @@ function [font_size, g, goal_labels, follower_caption, follower_labels, leader_l
     end
 
     angular_velocity_arrows = set_angular_velocity_arrows(N, x);
-
 end
 
 function [L, weights, rows, cols, lf, ll] = set_laplacian(L_diamond, weights_diamond, x, line_width);
@@ -318,6 +361,30 @@ function angular_velocity_arrows = set_angular_velocity_arrows(N, x)
 
     for i = 1:N
         angular_velocity_arrows(i) = quiver(x(1, i), x(2, i), 0, 0, 'MaxHeadSize', 0.5, 'Color', 'm');
+    end
+
+end
+
+function curvePoints = calculateCatmullRomCurve(points, numPoints)
+    curvePoints = [];
+
+    for i = 1:length(points) - 3
+        P0 = points(i, :);
+        P1 = points(i + 1, :);
+        P2 = points(i + 2, :);
+        P3 = points(i + 3, :);
+
+        for t = 0:1 / numPoints:1
+            T = [1, t, t ^ 2, t ^ 3];
+            M = [0, 1, 0, 0;
+                 -1, 0, 1, 0;
+                 2, -2, 1, -1;
+                 -1, 1, -1, 1];
+            G = [P0; P1; P2; P3];
+            pt = T * M * G;
+            curvePoints = [curvePoints; pt];
+        end
+
     end
 
 end
