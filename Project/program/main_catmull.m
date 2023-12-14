@@ -161,35 +161,35 @@ for t = 2:iterations
 
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    % % Changement de formation en ligne au cours du temps
-    % if (t == 1000)
-    %     L = L_line;
-    %     weights = weights_line;
-    %     % Supprimer les connexions existantes
-    %     delete(lf);
-    %     % Créer de nouvelles connexions entre les robots suiveurs
-    %     [rows, cols] = find(L == -1);
+    % Changement de formation en ligne au cours du temps
+    if (t == 1000)
+        L = L_line;
+        weights = weights_line;
+        % Supprimer les connexions existantes
+        delete(lf);
+        % Créer de nouvelles connexions entre les robots suiveurs
+        [rows, cols] = find(L == -1);
 
-    %     for k = 1:length(rows)
-    %         lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
-    %     end
+        for k = 1:length(rows)
+            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
+        end
 
-    % end
+    end
 
-    % % Changement de formation en diamant au cours du temps
-    % if (t == 2000)
-    %     L = L_diamond;
-    %     weights = weights_diamond;
-    %     % Supprimer les connexions existantes
-    %     delete(lf);
-    %     % Créer de nouvelles connexions entre les robots suiveurs
-    %     [rows, cols] = find(L == -1);
+    % Changement de formation en diamant au cours du temps
+    if (t == 2000)
+        L = L_diamond;
+        weights = weights_diamond;
+        % Supprimer les connexions existantes
+        delete(lf);
+        % Créer de nouvelles connexions entre les robots suiveurs
+        [rows, cols] = find(L == -1);
 
-    %     for k = 1:length(rows)
-    %         lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
-    %     end
+        for k = 1:length(rows)
+            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
+        end
 
-    % end
+    end
 
     %% Mise à jour des positions des robots
     xsi = uni_to_si_states(x); % Conversion en états single-integrator
@@ -233,7 +233,7 @@ for t = 2:iterations
     end
 
     if distance_to_waypoint < close_enough
-
+        savedPoints = curvePoints(end - 200:end - 199, :);
         % Sélectionner les trois prochains waypoints
         next_indices = state:min(state + 2, size(waypoints, 2));
 
@@ -242,9 +242,13 @@ for t = 2:iterations
         end
 
         % Recalculer la courbe de Catmull-Rom avec les nouveaux waypoints
-        control_points = [x(1:2, 1)'; waypoints(:, next_indices(1))'; waypoints(:, next_indices(2))'; waypoints(:, next_indices(3))'];
+        control_points = [savedPoints; waypoints(:, next_indices(1))'; waypoints(:, next_indices(2))'; waypoints(:, next_indices(3))'];
         control_points = [control_points; control_points(1, :)]; % Boucler sur le premier point pour continuité
         curvePoints = calculateCatmullRomCurve(control_points, numPoints); % Recalcul de la courbe
+        % Supprimer tous les points de la courbe jusqu'a waypoints(:, next_indices(1))'
+        curvePoints = curvePoints(waypoint_index-10:end, :);
+        disp(control_points);
+        disp(next_indices);
         waypoint_index = 1; % Réinitialisation de l'index de la courbe
         set(curve_line, 'XData', curvePoints(:, 1), 'YData', curvePoints(:, 2)); % Mise à jour de la courbe
 
@@ -303,12 +307,10 @@ for t = 2:iterations
     end
 
     % Flèches de vitesse angulaire
-    for i = 1:1
-        arrow_length = 0.2;
-        arrow_dx = arrow_length * cos(x(3, i) + dxu(2, i));
-        arrow_dy = arrow_length * sin(x(3, i) + dxu(2, i));
-        set(angular_velocity_arrows(i), 'XData', x(1, i), 'YData', x(2, i), 'UData', arrow_dx, 'VData', arrow_dy);
-    end
+    arrow_length = 0.2;
+    arrow_dx = arrow_length * cos(x(3, 1) + dxu(2, 1));
+    arrow_dy = arrow_length * sin(x(3, 1) + dxu(2, 1));
+    set(angular_velocity_arrows(1), 'XData', x(1, 1), 'YData', x(2, 1), 'UData', arrow_dx, 'VData', arrow_dy);
 
     %% Calculer les données à sauvegarder et les stocker dans la matrice
     robot_distance(1, t) = norm([x(1:2, 1) - x(1:2, 2)], 2);
