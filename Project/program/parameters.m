@@ -3,7 +3,7 @@ function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfa
     close all; % Ferme toutes les fenêtres de figure
     clc; % Nettoie la fenêtre de commande
     %% Constantes de l'expérience
-    iterations = 5000; % Nombre d'itérations de l'expérience
+    iterations = 1500; % Nombre d'itérations de l'expérience
     plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
 
     %% Mise en place de l'objet Robotarium

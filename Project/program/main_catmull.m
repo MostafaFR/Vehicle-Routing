@@ -18,11 +18,11 @@ numPoints = 100; % Nombre de points intermédiaires
 curvePoints = []; % Initialisation des points de la courbe
 waypoint_index = 1; % Index pour suivre la courbe Catmull-Rom
 
-initial_points = waypoints(:, 1:2)'; % Utiliser les waypoints comme points de contrôle
-initial_points = [x(1:2, 1)'; initial_points]; % Ajouter la position du leader comme point de contrôle
-initial_points = [initial_points(1, :); initial_points; initial_points(end, :)]; % Ajouter des points supplémentaires
+control_points = waypoints(:, 1:2)'; % Utiliser les waypoints comme points de contrôle
+control_points = [x(1:2, 1)'; control_points]; % Ajouter la position du leader comme point de contrôle
+control_points = [control_points(1, :); control_points; control_points(end, :)]; % Ajouter des points supplémentaires
 
-curvePoints = calculateCatmullRomCurve(initial_points, numPoints); % Calculer la courbe de Catmull-Rom
+curvePoints = calculateCatmullRomCurve(control_points, numPoints); % Calculer la courbe de Catmull-Rom
 
 % Tracez la courbe de Catmull-Rom
 curve_x = curvePoints(:, 1);
@@ -37,8 +37,8 @@ for t = 2:iterations
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Retrieve the most recent poses from the Robotarium.  The time delay is
     % approximately 0.033 seconds
-    pose = r.get_poses();
-    expected_odometer(:, t, :) = pose(:, :);
+    x = r.get_poses();
+    expected_odometer(:, t, :) = x(:, :);
     velocities = r.get_velocities() + normrnd(0, 0.001);
 
     for i = 1:N
@@ -157,7 +157,7 @@ for t = 2:iterations
 
     end
 
-    x = odometer(:, t, :); % on assigne à x la prédiction finale de la localisation
+    x_odo = odometer(:, t, :); % on assigne à x_odo la prédiction finale de la localisation
 
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -172,11 +172,11 @@ for t = 2:iterations
         [rows, cols] = find(L == -1);
 
         for k = 1:length(rows)
-            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
+            lf(k) = line([x_odo(1, rows(k)), x_odo(1, cols(k))], [x_odo(2, rows(k)), x_odo(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
         end
 
         % Connexion du leader (supposée seulement entre le premier et le deuxième robot)
-        ll = line([x(1, 1), x(1, 2)], [x(2, 1), x(2, 2)], 'LineWidth', line_width, 'Color', 'r');
+        ll = line([x_odo(1, 1), x_odo(1, 2)], [x_odo(2, 1), x_odo(2, 2)], 'LineWidth', line_width, 'Color', 'r');
 
     end
 
@@ -344,8 +344,8 @@ if (plot_live == 0)
     %% Graphiques pour omega et V dans des subplots
     figure;
     subplot(2, 1, 1);
-    plot(list_V);
-    title('V');
+    plot(2:iterations, list_V);
+    title('Vitesses Linéaires du Leader V');
     xlabel('Temps');
     ylabel('Vitesse');
     ylim([0, r.max_linear_velocity]); % Échelle pour V
@@ -358,17 +358,18 @@ if (plot_live == 0)
 
     figure;
     subplot(2, 1, 1); % Premier subplot pour omega
-    plot(list_omega);
-    title('Omega');
+    plot(2:iterations, list_omega);
+    disp(list_omega);
+    title('Angulaire du Leader Omega');
     xlabel('Temps');
     ylabel('Omega');
-    ylim([0, pi]); % Définir les limites de l'axe des y à [-pi, pi]
+    ylim([0, pi]); % Définir les limites de l'axe des y à [0, pi]
     yticks([0, pi / 2, pi]); % Définir les marques spécifiques sur l'axe des y
     yticklabels({'0', '\pi/2', '\pi'}); % Étiqueter les marques de l'axe des y
 
     subplot(2, 1, 2);
     plot(1:iterations, deriv_leader_angular_speeds);
-    title('Dérivée de la Vitesse Angulaire du Leader');
+    title('Dérivée de Omega');
     xlabel('Itération');
     ylabel('Dérivée de la Vitesse Angulaire');
 
