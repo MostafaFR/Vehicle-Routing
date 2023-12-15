@@ -1,4 +1,4 @@
-[x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
+[initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
 
 [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices(d);
 
@@ -254,7 +254,7 @@ for t = 2:iterations
         control_points = [control_points; control_points(1, :)]; % Boucler sur le premier point pour continuité
         curvePoints = calculateCatmullRomCurve(control_points, numPoints); % Recalcul de la courbe
         % Supprimer tous les points de la courbe jusqu'a waypoints(:, next_indices(1))'
-        curvePoints = curvePoints(waypoint_index - 10:end, :);
+        curvePoints = curvePoints(waypoint_index:end, :);
         waypoint_index = 1; % Réinitialisation de l'index de la courbe
         set(curve_line, 'XData', curvePoints(:, 1), 'YData', curvePoints(:, 2)); % Mise à jour de la courbe
 
@@ -271,7 +271,7 @@ for t = 2:iterations
     dxu = si_to_uni_dyn(dxi, x);
     dxu = uni_barrier_cert(dxu, x);
 
-    list_omega = [list_omega; dxu(2, 1)]; % Stockage de la vitesse angulaire du leader
+    list_omega = [list_omega; abs(x(3, 1))]; % Stockage de la vitesse angulaire du leader
     list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
     leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
     leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader

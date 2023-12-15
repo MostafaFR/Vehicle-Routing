@@ -1,4 +1,4 @@
-function [x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
+function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfault3, tfault4, sigmax, sigmay, iterations, plot_live, N, r, d, dxi, state, formation_control_gain, si_to_uni_dyn, uni_barrier_cert, leader_controller, uni_to_si_states, waypoints, obstacles, close_enough, list_omega, list_V, leader_speeds, leader_angular_speeds, deriv_leader_speeds, deriv_leader_angular_speeds, robot_distance, goal_distance, line_width] = parameters()
     clear;     % Efface toutes les variables de l'espace de travail
     close all; % Ferme toutes les fenêtres de figure
     clc; % Nettoie la fenêtre de commande
@@ -8,7 +8,10 @@ function [x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfau
 
     %% Mise en place de l'objet Robotarium
     N = 5; % Nombre de robots
+    
     initial_positions = generate_initial_conditions(N, 'Width', 2, 'Height', 2, 'Spacing', 0.6); % Génération des positions initiales aléatoires
+    % position du robot leader aléatoire tout en haut
+    initial_positions(:, 1) = [0.5 1.3 1]';
     r = Robotarium('NumberOfRobots', N, 'ShowFigure', true, 'InitialConditions', initial_positions); % Création de l'objet Robotarium avec les paramètres spécifiés
 
     %% Initialisation des variables
@@ -37,7 +40,7 @@ function [x, R, odometer, expected_odometer, Qu, Q, podo, tfault1, tfault2, tfau
 
     % Waypoints pour la navigation du leader
     waypoints = [-1 0.8; -1 -0.8; 1 -0.8; 1 0.8]';
-    obstacles = [-1 0; 0 -0.8; 1 0; 0 0.8]';
+    obstacles = [-1.4 0; 0 -0.8; 1 0; 0 0.8]';
     close_enough = 0.2; % Seuil de proximité aux waypoints
 
     % Initialisation des tableaux pour stocker les vitesses/acceleration linéaire et angulaire du leader

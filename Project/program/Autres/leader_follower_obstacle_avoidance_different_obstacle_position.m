@@ -124,6 +124,7 @@ for t = 1:iterations
                 else
                     dxi(1, i) = dxi(1, i) + formation_control_gain * (norm(x(1:2, j) - x(1:2, i)) ^ 2 - desired_distance ^ 2) * 4.1 * (x(1, j) - x(1, i) + 0.01);
                     dxi(2, i) = dxi(2, i) + formation_control_gain * (norm(x(1:2, j) - x(1:2, i)) ^ 2 - desired_distance ^ 2) * 4.1 * (x(2, j) - x(2, i));
+                    % dxi(:, i) = dxi(:, i) + formation_control_gain * (norm(x(1:2, j) - x(1:2, i)) ^ 2 - desired_distance ^ 2) * (x(1:2, j) - x(1:2, i));
                 end
 
             end
