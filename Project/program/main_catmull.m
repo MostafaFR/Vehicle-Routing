@@ -30,9 +30,21 @@ curve_y = curvePoints(:, 2);
 curve_line = plot(curve_x, curve_y, 'g', 'LineWidth', 2); % Tracez la courbe en magenta
 hold on;
 
+% -----------------------
+% Initialisation des variables Communication
+
+debit_bluetooth = 2; % en Mbit/s
+poid_donnee = 0.25; % en Mbit
+portee_max = 10; % en m
+temps_transmission = poid_donnee / debit_bluetooth; % en s
+energie = zeros(2, iterations); % vecteur d'énergie
+% time_iteration 
+packet_loss_data = zeros(1, iterations); % vecteur de perte de paquets
 r.step();
 
 for t = 2:iterations
+    time_current_iteration = tic;
+    energie(t) = 0.7 * (1 - t / iterations) + 0.3;
     % LOCALISATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Retrieve the most recent poses from the Robotarium.  The time delay is
@@ -172,11 +184,11 @@ for t = 2:iterations
         [rows, cols] = find(L == -1);
 
         for k = 1:length(rows)
-            lf(k) = line([x_odo(1, rows(k)), x_odo(1, cols(k))], [x_odo(2, rows(k)), x_odo(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
+            lf(k) = line([x(1, rows(k)), x(1, cols(k))], [x(2, rows(k)), x(2, cols(k))], 'LineWidth', line_width, 'Color', 'b');
         end
 
         % Connexion du leader (supposée seulement entre le premier et le deuxième robot)
-        ll = line([x_odo(1, 1), x_odo(1, 2)], [x_odo(2, 1), x_odo(2, 2)], 'LineWidth', line_width, 'Color', 'r');
+        ll = line([x(1, 1), x(1, 2)], [x(2, 1), x(2, 2)], 'LineWidth', line_width, 'Color', 'r');
 
     end
 
@@ -344,6 +356,8 @@ for t = 2:iterations
         goal_distance = [goal_distance [norm(x(1:2, 1) - waypoint); toc(start_time)]];
     end
 
+    time_iteration(t) = toc(time_current_iteration);
+
     r.step();
 end
 
@@ -430,6 +444,58 @@ title('Distance entre le robot 4 et le robot 5');
 xlabel('Temps');
 ylabel('Distance');
 ylim([0, 1.5]);
+
+% Temps de simulation au fur et à mesure des itérations
+figure;
+plot(time_iteration);
+title('Temps de simulation au fur et à mesure des itérations');
+xlabel('Itération');
+ylabel('Temps (s)');
+grid on;
+
+% Plot du temps de transmission des données entre robot
+figure;
+subplot(2, 3, 1);
+plot(robot_d12 * 10 / portee_max * temps_transmission * energie(t));
+title('Temps de transmission entre le robot 1 et le robot 2');
+xlabel('Temps');
+ylabel('Temps (s)');
+ylim([0, 0.25]);
+
+subplot(2, 3, 2);
+plot(robot_d23 * 10 / portee_max * temps_transmission * energie(t));
+title('Temps de transmission entre le robot 2 et le robot 3');
+xlabel('Temps');
+ylabel('Temps (s)');
+ylim([0, 0.25]);
+
+subplot(2, 3, 3);
+plot(robot_d24 * 10 / portee_max * temps_transmission * energie(t));
+title('Temps de transmission entre le robot 2 et le robot 4');
+xlabel('Temps');
+ylabel('Temps (s)');
+ylim([0, 0.25]);
+
+subplot(2, 3, 4);
+plot(robot_d34 * 10 / portee_max * temps_transmission * energie(t));
+title('Temps de transmission entre le robot 3 et le robot 4');
+xlabel('Temps');
+ylabel('Temps (s)');
+ylim([0, 0.25]);
+
+subplot(2, 3, 5);
+plot(robot_d35 * 10 / portee_max * temps_transmission * energie(t));
+title('Temps de transmission entre le robot 3 et le robot 5');
+xlabel('Temps');
+ylabel('Temps (s)');
+ylim([0, 0.25]);
+
+subplot(2, 3, 6);
+plot(robot_d45 * 10 / portee_max * temps_transmission * energie(t));
+title('Temps de transmission entre le robot 4 et le robot 5');
+xlabel('Temps');
+ylabel('Temps (s)');
+ylim([0, 0.25]);
 
 %% ##################### EVALUATION LOCALISATION #####################
 % On s'intéresse sur cette partie seulement à l'évaluation de la
