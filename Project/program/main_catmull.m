@@ -38,13 +38,25 @@ poid_donnee = 0.25; % en Mbit
 portee_max = 10; % en m
 temps_transmission = poid_donnee / debit_bluetooth; % en s
 energie = zeros(2, iterations); % vecteur d'énergie
-% time_iteration 
+% time_iteration
 packet_loss_data = zeros(1, iterations); % vecteur de perte de paquets
+probabilite_perte_paquet = 0.05; % 5 % de probabilité de perte de paquet
+
 r.step();
 
 for t = 2:iterations
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% COMMUNICATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     time_current_iteration = tic;
     energie(t) = 0.7 * (1 - t / iterations) + 0.3;
+
+    % Simulation de la perte de paquet
+    if rand() <= probabilite_perte_paquet
+        packet_loss_data(t) = 1; % Perte de paquet
+    else
+        packet_loss_data(t) = 0; % Transmission réussie
+    end
+
     % LOCALISATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOCALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Retrieve the most recent poses from the Robotarium.  The time delay is
@@ -211,21 +223,6 @@ for t = 2:iterations
 
     end
 
-    %% Mise à jour des positions des robots
-    xsi = uni_to_si_states(x); % Conversion en états single-integrator
-
-    %% Algorithme de contrôle pour la formation
-    for i = 2:N
-        dxi(:, i) = [0; 0]; % Réinitialisation de la vitesse du robot i
-
-        neighbors = topological_neighbors(L, i); % Obtenir les voisins du robot i
-
-        for j = neighbors
-            dxi(:, i) = dxi(:, i) + formation_control_gain * (norm(xsi(:, i) - xsi(:, j)) ^ 2 - weights(i, j) ^ 2) * (xsi(:, j) - xsi(:, i));
-        end
-
-    end
-
     %% Logique de navigation du leader
     waypoint = waypoints(:, state); % Sélection du waypoint actuel
     next_state = mod(state, size(waypoints, 2)) + 1; % Passage à l'état suivant
@@ -271,6 +268,59 @@ for t = 2:iterations
         set(curve_line, 'XData', curvePoints(:, 1), 'YData', curvePoints(:, 2)); % Mise à jour de la courbe
 
         state = next_state; % Passage à l'état suivant si le waypoint actuel est atteint
+    end
+
+    %% Mise à jour des positions des robots
+    xsi = uni_to_si_states(x); % Conversion en états single-integrator
+
+    % %% Algorithme de contrôle pour la formation
+    % for i = 2:N
+    %     dxi(:, i) = [0; 0]; % Réinitialisation de la vitesse du robot i
+
+    %     neighbors = topological_neighbors(L, i); % Obtenir les voisins du robot i
+
+    %     for j = neighbors
+    %         dxi(:, i) = dxi(:, i) + formation_control_gain * (norm(xsi(:, i) - xsi(:, j)) ^ 2 - weights(i, j) ^ 2) * (xsi(:, j) - xsi(:, i));
+    %     end
+
+    % end
+    % Update robots' states and control inputs
+    for i = 2:N
+        robot_pos = x(1:2, i); % Current position of robot i
+        robot_angle = x(3, i); % Current orientation of robot i
+
+        [d_obs, d_obs_dot, nearest_obstacle_idx] = compute_obstacle_distance_and_derivative(robot_pos, obstacles);
+
+        V = lyapunov_function(d_obs);
+        V_dot = lyapunov_derivative(d_obs, d_obs_dot);
+
+        if d_obs < close_enough
+            % Robot is approaching an obstacle, steer away from it
+            % Determine the direction to turn based on obstacle position
+            obstacle_pos = obstacles(:, nearest_obstacle_idx); % Get position of nearest obstacle
+            angle_to_obstacle = atan2(obstacle_pos(2) - robot_pos(2), obstacle_pos(1) - robot_pos(1));
+            turn_direction = sign(sin(robot_angle - angle_to_obstacle)); % Determine turn direction
+
+            avoidance_speed = 0.5; % Set a speed for avoidance
+            avoidance_turn_rate = 0.3; % Set a turn rate for avoidance
+
+            % Update control input to steer away from the obstacle
+            dxi(:, i) = [cos(avoidance_turn_rate); sin(avoidance_turn_rate)] * avoidance_speed;
+        else
+
+            if i > 1
+                dxi(:, i) = [0; 0]; % Réinitialisation de la vitesse du robot i
+
+                neighbors = topological_neighbors(L, i); % Obtenir les voisins du robot i
+
+                for j = neighbors
+                    dxi(:, i) = dxi(:, i) + formation_control_gain * (norm(xsi(:, i) - xsi(:, j)) ^ 2 - weights(i, j) ^ 2) * (xsi(:, j) - xsi(:, i));
+                end
+
+            end
+
+        end
+
     end
 
     %% Éviter les erreurs de l'actionneur
@@ -496,6 +546,16 @@ title('Temps de transmission entre le robot 4 et le robot 5');
 xlabel('Temps');
 ylabel('Temps (s)');
 ylim([0, 0.25]);
+
+% Création du graphique de la perte de paquets
+figure;
+plot(packet_loss_data);
+title('Taux de Perte de Paquets au Fil du Temps');
+xlabel('Temps (itérations)');
+ylabel('Taux de Perte de Paquets');
+ylim([0, 1]); % Définir les limites de l'axe des y pour une meilleure lisibilité
+grid on; % Ajouter des lignes de grille
+legend('Taux de Perte de Paquets');
 
 %% ##################### EVALUATION LOCALISATION #####################
 % On s'intéresse sur cette partie seulement à l'évaluation de la
@@ -811,4 +871,24 @@ function communication_delay = calculate_communication_delay(communication_statu
             error('Invalid communication status. Use ''perfect'', ''obstacle'', or ''broken_link''.');
     end
 
+end
+
+function V = lyapunov_function(d_obs)
+    V = 1 / (d_obs ^ 2);
+end
+
+function V_dot = lyapunov_derivative(d_obs, d_obs_dot)
+    V_dot = -2 * d_obs_dot / (d_obs ^ 3);
+end
+
+function [d_obs, d_obs_dot, nearest_obstacle_idx] = compute_obstacle_distance_and_derivative(robot_pos, obstacles)
+    % Compute the distance to the nearest obstacle and its rate of change
+    % Return the index of the nearest obstacle as well
+
+    % Placeholder logic for obstacle distance and its derivative
+    distances = sqrt(sum((obstacles - robot_pos) .^ 2, 1));
+    [d_obs, nearest_obstacle_idx] = min(distances);
+
+    % Placeholder for the derivative of distance
+    d_obs_dot = -0.01; % Example value, replace with actual computation
 end

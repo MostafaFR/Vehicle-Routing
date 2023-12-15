@@ -3,7 +3,7 @@ function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfa
     close all; % Ferme toutes les fenêtres de figure
     clc; % Nettoie la fenêtre de commande
     %% Constantes de l'expérience
-    iterations = 1500; % Nombre d'itérations de l'expérience
+    iterations = 5000; % Nombre d'itérations de l'expérience
     plot_live = 0; % Afficher les graphiques en direct (0 pour désactiver, 1 pour activer)
 
     %% Mise en place de l'objet Robotarium
@@ -11,7 +11,7 @@ function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfa
     
     initial_positions = generate_initial_conditions(N, 'Width', 2, 'Height', 2, 'Spacing', 0.6); % Génération des positions initiales aléatoires
     % position du robot leader aléatoire tout en haut
-    initial_positions(:, 1) = [0.5 1.3 1]';
+    initial_positions(:, 1) = [0.5 1.3 3]';
     r = Robotarium('NumberOfRobots', N, 'ShowFigure', true, 'InitialConditions', initial_positions); % Création de l'objet Robotarium avec les paramètres spécifiés
 
     %% Initialisation des variables
