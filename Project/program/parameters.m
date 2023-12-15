@@ -8,10 +8,11 @@ function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfa
 
     %% Mise en place de l'objet Robotarium
     N = 5; % Nombre de robots
-    
-    initial_positions = generate_initial_conditions(N, 'Width', 2, 'Height', 2, 'Spacing', 0.6); % Génération des positions initiales aléatoires
+
+    initial_positions = generate_initial_conditions(N, 'Width', 0.5, 'Height', 0.5, 'Spacing', 0.15); % Génération des positions initiales aléatoires
     % position du robot leader aléatoire tout en haut
-    initial_positions(:, 1) = [0.5 1.3 3]';
+    initial_positions(:, 1) = [0 1.3 3]';
+    initial_positions(:, 4) = [0 -0.8 1]';
     r = Robotarium('NumberOfRobots', N, 'ShowFigure', true, 'InitialConditions', initial_positions); % Création de l'objet Robotarium avec les paramètres spécifiés
 
     %% Initialisation des variables
@@ -40,7 +41,7 @@ function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfa
 
     % Waypoints pour la navigation du leader
     waypoints = [-1 0.8; -1 -0.8; 1 -0.8; 1 0.8]';
-    obstacles = [-1.4 0; 0 -0.8; 1 0; 0 0.8]';
+    obstacles = [-1.0 0; 1 0; 0 0.8]';
     close_enough = 0.2; % Seuil de proximité aux waypoints
 
     % Initialisation des tableaux pour stocker les vitesses/acceleration linéaire et angulaire du leader

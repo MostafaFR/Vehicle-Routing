@@ -8,7 +8,7 @@ function [L_diamond, weights_diamond, L_line, weights_line] = laplacian_matrices
 
     % Poids pour les distances entre les robots
     weights_diamond = [0 desired_distance 0 0 0; % Distances du leader aux autres
-                       desired_distance 0 desired_distance desired_distance 0; % Distances du robot 2 aux autres
+                       desired_distance 0 0 0 0; % Distances du robot 2 aux autres
                        0 desired_distance 0 desired_distance desired_distance; % Distances du robot 3 aux autres
                        0 desired_distance desired_distance 0 desired_distance; % Distances du robot 4 aux autres
                        0 (2 * sqrt(2) * desired_distance) desired_distance desired_distance 0]; % Distances du robot 5 aux autres

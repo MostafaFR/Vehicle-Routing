@@ -284,5 +284,3 @@ function font_size = determine_font_size(robotarium_instance, font_height_meters
     % the hight of the figure window in points.
     font_size = cursize(4) * font_ratio;
 end
-
-end

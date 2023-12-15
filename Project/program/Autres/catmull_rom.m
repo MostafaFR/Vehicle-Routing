@@ -1,5 +1,5 @@
 % Définition des points de contrôle
-points = [0,0;-1, 0.8; -1, -0.8; 1, -0.8; 1, 0.8; -1, 0.8];
+points = [0,0;-1, 0.8; -1, -0.8; 1, -0.8; 0.5, 0.8; -0.5, 0.8];
 
 % Ajouter des points supplémentaires aux extrémités pour gérer les extrémités
 points = [points(1, :); points; points(end, :)];
