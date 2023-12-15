@@ -275,6 +275,18 @@ for t = 2:iterations
     list_V = [list_V; dxu(1, 1)]; % Stockage de la vitesse linéaire du leader
     leader_speeds(t) = dxu(1, 1); % Vitesse linéaire du leader
     leader_angular_speeds(t) = abs(x(3, 1)); % Vitesse angulaire du leader
+    % Robot 1 et 2
+    robot_d12(t) = norm([x(1:2, 1) - x(1:2, 2)], 2);
+    % Robot 2 et 3
+    robot_d23(t) = norm([x(1:2, 2) - x(1:2, 3)], 2);
+    % Robot 2 et 4
+    robot_d24(t) = norm([x(1:2, 2) - x(1:2, 4)], 2);
+    % Robot 3 et 4
+    robot_d34(t) = norm([x(1:2, 3) - x(1:2, 4)], 2);
+    % Robot 3 et 5
+    robot_d35(t) = norm([x(1:2, 3) - x(1:2, 5)], 2);
+    % Robot 4 et 5
+    robot_d45(t) = norm([x(1:2, 4) - x(1:2, 5)], 2);
 
     %% Envoyer les vitesses aux robots
     r.set_velocities(1:N, dxu);
@@ -374,6 +386,50 @@ if (plot_live == 0)
     ylabel('Dérivée de la Vitesse Angulaire');
 
 end
+
+% Plot les distances de robot robot_d entre eux dans des subplot
+figure;
+subplot(2, 3, 1);
+plot(robot_d12);
+title('Distance entre le robot 1 et le robot 2');
+xlabel('Temps');
+ylabel('Distance');
+ylim([0, 1.5]);
+
+subplot(2, 3, 2);
+plot(robot_d23);
+title('Distance entre le robot 2 et le robot 3');
+xlabel('Temps');
+ylabel('Distance');
+ylim([0, 1.5]);
+
+subplot(2, 3, 3);
+plot(robot_d24);
+title('Distance entre le robot 2 et le robot 4');
+xlabel('Temps');
+ylabel('Distance');
+ylim([0, 1.5]);
+
+subplot(2, 3, 4);
+plot(robot_d34);
+title('Distance entre le robot 3 et le robot 4');
+xlabel('Temps');
+ylabel('Distance');
+ylim([0, 1.5]);
+
+subplot(2, 3, 5);
+plot(robot_d35);
+title('Distance entre le robot 3 et le robot 5');
+xlabel('Temps');
+ylabel('Distance');
+ylim([0, 1.5]);
+
+subplot(2, 3, 6);
+plot(robot_d45);
+title('Distance entre le robot 4 et le robot 5');
+xlabel('Temps');
+ylabel('Distance');
+ylim([0, 1.5]);
 
 %% ##################### EVALUATION LOCALISATION #####################
 % On s'intéresse sur cette partie seulement à l'évaluation de la
