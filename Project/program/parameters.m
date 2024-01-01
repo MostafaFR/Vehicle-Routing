@@ -26,7 +26,7 @@ function [initial_positions, x, R, odometer, expected_odometer, Qu, Q, podo, tfa
 
     dxi = zeros(2, N); % Initialisation du vecteur de vélocités
     state = 1; % État pour le leader
-    formation_control_gain = 20; % Paramètres de contrôle de la formation
+    formation_control_gain = 10; % Paramètres de contrôle de la formation
 
     %% Configuration des outils pour la dynamique unicycle
 
