@@ -25,12 +25,6 @@ This repository hosts a comprehensive MATLAB Simulink project aimed at the devel
 - **MATLAB Scripts**: Includes all the scripts used to set up, run simulations, and analyze outcomes. Scripts are modular and well-documented to allow easy customization and testing.
 - **Data and Results**: Provides example datasets used in simulations along with the results and visualizations of various experiments conducted during the project development.
 
-## Installation and Setup
-
-1. **Clone the repository**: git clone https://github.com/yourgithub/matlab-simulink-mrs.git
-2. **Open MATLAB**: Navigate to the cloned directory.
-3. **Run the Simulink Models**: Open each model with MATLAB Simulink and run them directly or through associated scripts.
-
 ## Usage
 
 To run simulations:
