@@ -1,0 +1,670 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0087)http://www.mathworks.com/matlabcentral/fileexchange/32696-2d-line-curvature-and-normals -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=8">
+      
+      <!-- START OF GLOBAL NAV -->
+  <link rel="stylesheet" href="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/sitewide.css" type="text/css">
+  <link rel="stylesheet" href="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/mlc.css" type="text/css">
+  <!--[if lt IE 7]>
+  <link href="/matlabcentral/css/ie6down.css" type="text/css" rel="stylesheet">
+  <![endif]-->
+
+      
+      
+<meta name="keywords" content="file exchange, matlab answers, newsgroup access, link exchange, matlab blog, matlab central, simulink blog, matlab community, matlab and simulink community">
+<meta name="description" content="File exchange, MATLAB Answers, newsgroup access, Links, and Blogs for the MATLAB &amp; Simulink user community">
+<link rel="stylesheet" type="text/css" media="print" href="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/print.css">
+<title>2D Line Curvature and Normals -  File Exchange - MATLAB Central</title>
+<script type="text/javascript" async="" src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/ahy.js"></script><script src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/jquery-1.9.1.min.js" type="text/javascript"></script><style type="text/css"></style>
+<script src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/jquery-ui-1.10.1.min.js" type="text/javascript"></script>
+<script src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/jquery_ujs.js" type="text/javascript"></script>
+<script src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/application.js" type="text/javascript"></script>
+<link href="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/application.css" media="screen" rel="stylesheet" type="text/css">
+<link href="http://www.mathworks.com/matlabcentral/fileexchange/file_infos/32696-2d-line-curvature-and-normals" rel="canonical">
+<meta content="2D Line Curvature and Normals - File Exchange - MATLAB Central" property="og:title"><meta content="website" property="og:type"><meta content="http://www.mathworks.com/matlabcentral/fileexchange/file_infos/32696-2d-line-curvature-and-normals" property="og:url"><meta content="/matlabcentral/fileexchange/screenshots/31650/original.jpg" property="og:image"><meta content="Accurate Curvature and Normals of a line/contour consisting of 2D points" property="og:description">
+<link rel="search" type="application/opensearchdescription+xml" title="Search File Exchange" href="http://www.mathworks.com/matlabcentral/fileexchange/search.xml">
+
+
+  </head>
+    <body>
+      <div id="header">
+  <div class="wrapper">
+  <!--put nothing in left div - only 11px wide shadow --> 
+    <div class="main">
+        	<div id="logo"><a href="http://www.mathworks.com/matlabcentral/?s_tid=gn_mlc_logo" title="MATLAB Central Home"><img src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/mlclogo-whitebgd.gif" alt="MATLAB Central"></a></div>
+      
+        <div id="headertools">
+        
+
+<script language="JavaScript1.3" type="text/javascript">
+
+function submitForm(query){
+
+	choice = document.forms['searchForm'].elements['search_submit'].value;
+	
+	if (choice == "entire1" || choice == "contest" || choice == "matlabcentral" || choice == "blogs"){
+	
+	   var newElem = document.createElement("input");
+	   newElem.type = "hidden";
+	   newElem.name = "q";
+	   newElem.value = query.value;
+	   document.forms['searchForm'].appendChild(newElem);
+	      
+	   submit_action = '/searchresults/';
+	}
+	
+	switch(choice){
+	   case "matlabcentral":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "c[]";
+	      newElem.value = "matlabcentral";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      selected_index = 0;
+	      break
+	   case "fileexchange":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "term";
+	      newElem.value = query.value;
+	      newElem.classname = "formelem";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      submit_action = "/matlabcentral/fileexchange/";
+	      selected_index = 1;
+	      break
+	   case "answers":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "term";
+	      newElem.value = query.value;
+	      newElem.classname = "formelem";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      submit_action = "/matlabcentral/answers/";
+	      selected_index = 2;
+	      break
+	   case "cssm":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "search_string";
+	      newElem.value = query.value;
+	      newElem.classname = "formelem";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+		  submit_action = "/matlabcentral/newsreader/search_results";
+	      selected_index = 3;
+	      break
+	   case "linkexchange":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "term";
+	      newElem.value = query.value;
+	      newElem.classname = "formelem";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      submit_action = "/matlabcentral/linkexchange/";
+	      selected_index = 4;
+	      break
+	   case "blogs":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "c[]";
+	      newElem.value = "blogs";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      selected_index = 5;
+	      break
+	   case "trendy":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "search";
+	      newElem.value = query.value;
+	      newElem.classname = "formelem";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      submit_action = "/matlabcentral/trendy";
+	      selected_index = 6;
+	      break
+	   case "cody":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "term";
+	      newElem.value = query.value;
+	      newElem.classname = "formelem";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      submit_action = "/matlabcentral/cody/";
+	      selected_index = 7;
+	      break
+	   case "contest":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "c[]";
+	      newElem.value = "contest";
+	      document.forms['searchForm'].appendChild(newElem);
+	
+	      selected_index = 8;
+	      break
+	   case "entire1":
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "c[]";
+	      newElem.value = "entiresite";
+	      document.forms['searchForm'].appendChild(newElem);
+	      
+	      selected_index = 9;
+	      break
+	   default:
+	      var newElem = document.createElement("input");
+	      newElem.type = "hidden";
+	      newElem.name = "c[]";
+	      newElem.value = "entiresite";
+	      document.forms['searchForm'].appendChild(newElem);
+	   
+	      selected_index = 9;
+	      break
+	}
+
+	document.forms['searchForm'].elements['search_submit'].selectedIndex = selected_index;
+	document.forms['searchForm'].elements['query'].value = query.value;
+	document.forms['searchForm'].action = submit_action;
+}
+
+</script>
+
+
+  <form name="searchForm" method="GET" action="" style="margin:0px; margin-top:5px; font-size:90%" onsubmit="submitForm(query)">
+          <label for="search">Search: </label>
+        <select name="search_submit" style="font-size:9px ">
+         	 <option value="matlabcentral">MATLAB Central</option>
+          	<option value="fileexchange" selected="">&nbsp;&nbsp;&nbsp;File Exchange</option>
+          	<option value="answers">&nbsp;&nbsp;&nbsp;Answers</option>
+            <option value="cssm">&nbsp;&nbsp;&nbsp;Newsgroup</option>
+          	<option value="linkexchange">&nbsp;&nbsp;&nbsp;Link Exchange</option>
+          	<option value="blogs">&nbsp;&nbsp;&nbsp;Blogs</option>
+          	<option value="trendy">&nbsp;&nbsp;&nbsp;Trendy</option>
+          	<option value="cody">&nbsp;&nbsp;&nbsp;Cody</option>
+          	<option value="contest">&nbsp;&nbsp;&nbsp;Contest</option>
+          <option value="entire1">MathWorks.com</option>
+        </select>
+<input type="text" name="query" size="10" class="formelem" value="">
+<input type="submit" value="Go" class="formelem gobutton">
+</form>
+
+		  <ol id="access2">
+  <li class="first">
+    <a href="https://www.mathworks.com/accesslogin/createProfile.do?uri=http%3A%2F%2Fwww.mathworks.com%2Fmatlabcentral%2Ffileexchange%2F32696-2d-line-curvature-and-normals" id="create_account_link">Create Account</a>
+  </li>
+  <li>
+    <a href="https://www.mathworks.com/accesslogin/index_fe.do?uri=http%3A%2F%2Fwww.mathworks.com%2Fmatlabcentral%2Ffileexchange%2F32696-2d-line-curvature-and-normals" id="login_link">Log In</a>
+  </li>
+</ol>
+
+
+      </div>
+	  
+        <div id="globalnav">
+        <!-- from includes/global_nav.html -->
+        <ol>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/fileexchange/?s_tid=gn_mlc_fx">File Exchange</a> 
+                </li>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/answers/?s_tid=gn_mlc_an">Answers</a> 
+                </li>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/newsreader/?s_tid=gn_mlc_ng">Newsgroup</a> 
+                </li>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/linkexchange/?s_tid=gn_mlc_lx">Link Exchange</a> 
+                </li>
+                <li class=";">
+                        <a href="http://blogs.mathworks.com/?s_tid=gn_mlc_blg">Blogs</a> 
+                </li>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/trendy/?s_tid=gn_mlc_tnd">Trendy</a> 
+                </li>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/cody/?s_tid=gn_mlc_cody">Cody</a> 
+                </li>
+                <li class=";">
+                        <a href="http://www.mathworks.com/matlabcentral/contest/?s_tid=gn_mlc_cn">Contest</a> 
+                </li>
+                <li class="icon mathworks">
+                        <a href="http://www.mathworks.com/?s_tid=gn_mlc_main">MathWorks.com</a> 
+                </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <div id="middle">
+  <div class="wrapper">
+
+    <div id="mainbody" class="columns2">
+
+  
+
+  <div itemscope="" itemtype="http://schema.org/CreativeWork">
+    
+    
+    
+    <div class="manifest">
+
+    <div class="ctaBtn ctaBlueBtn btnSmall">
+            <div id="download_submission_button" class="btnCont">
+              <div class="btn download"><a href="http://www.mathworks.com/matlabcentral/fileexchange/downloads/306721/download" title="Download Now">Download Submission</a></div>
+            </div>
+          </div>
+
+
+      <p class="license">
+      Code covered by the <a href="http://www.mathworks.com/matlabcentral/fileexchange/view_license?file_info_id=32696" popup="new_window height=500,width=640,scrollbars=yes">BSD License</a>
+      <a href="http://www.mathworks.com/matlabcentral/fileexchange/help_license#bsd" class="info notext preview_help" onclick="window.open(this.href,&#39;small&#39;,&#39;toolbar=no,resizable=yes,status=yes,menu=no,scrollbars=yes,width=600,height=550&#39;);return false;">&nbsp;</a>
+  </p>
+
+
+
+  
+  <h3 class="highlights_title">Highlights from <br>
+    <a href="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/2D Line Curvature and Normals - File Exchange - MATLAB Central.htm" class="manifest_title">2D Line Curvature and Normals</a>
+  </h3>
+  <ul class="manifest">
+      <li class="manifest"><a href="http://www.mathworks.com/matlabcentral/fileexchange/32696-2d-line-curvature-and-normals/content/LineNormals2D.m" class="function" title="Function">N=LineNormals2D(Vertices,...</a><span class="description">This function calculates the normals, of the line points
+</span></li>
+      <li class="manifest"><a href="http://www.mathworks.com/matlabcentral/fileexchange/32696-2d-line-curvature-and-normals/content/LineCurvature2D.m" class="function" title="Function">k=LineCurvature2D(Vertice...</a><span class="description">This function calculates the curvature of a 2D line. It first fits 
+</span></li>
+    <li class="manifest_allfiles">
+      <a href="http://www.mathworks.com/matlabcentral/fileexchange/32696-2d-line-curvature-and-normals/content/linecurvature_version1b.zip" id="view_all_files">View all files</a>
+    </li>
+  </ul>
+
+</div>
+
+
+    <table cellpadding="0" cellspacing="0" class="details file">
+      <tbody><tr>
+        <th class="maininfo">
+          
+        <div id="rankinfo">
+
+            <div class="starrating">
+              <div style="width:93.3334%;">
+                <p>4.66667</p>
+              </div>
+            </div>
+            <span itemprop="aggregateRating" itemscope="" itemtype="http://schema.org/AggregateRating" class="numberrating">
+              <span itemprop="ratingValue">4.7</span>
+              <span class="divider"> | </span>
+              <a href="http://www.mathworks.com/matlabcentral/fileexchange/32696-2d-line-curvature-and-normals#feedback"><span itemprop="ratingCount">3</span> ratings</a>
+            </span>
+            <a id="ratelink" href="http://www.mathworks.com/matlabcentral/fileexchange/32696-2d-line-curvature-and-normals#comments">Rate this file</a>
+          <span id="downloads">122 Downloads (last 30 days)</span>
+          <span id="filesize">File Size: 8.97 KB</span>
+          <span id="fileid">File ID: #32696</span>
+        </div>
+
+          
+  <div id="thumbnail" style="padding-bottom: 3px;">
+    <a href="http://www.mathworks.com/matlabcentral/fileexchange/screenshots/5941/original.jpg" border="0"><img itemprop="image" src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/preview.jpg" width="100" alt="image thumbnail"></a>
+  </div>
+
+
+<div id="details">
+  <h1 itemprop="name">2D Line Curvature and Normals</h1>
+  <p id="author">
+    by 
+    <span itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <span itemprop="name"><a href="http://www.mathworks.com/matlabcentral/fileexchange/authors/29180">Dirk-Jan Kroon</a></span>
+    </span>
+  </p>
+  <p>&nbsp;</p>
+  <p>
+    <span id="submissiondate">
+      26 Aug 2011
+    </span>
+      <span id="date_updated">(Updated 
+        <span itemprop="datePublished" content="2011-10-17">17 Oct 2011</span>)
+      </span>
+  </p>
+
+  <p id="summary">Accurate Curvature and Normals of a line/contour consisting of 2D points</p>
+
+
+  <p id="filetools">
+  <span class="divider"> | </span>
+    <a href="http://www.mathworks.com/matlabcentral/fileexchange/watchlists/new?type=file&uri=%2Fmatlabcentral%2Ffileexchange%2F32696-2d-line-curvature-and-normals&watching=32696" class="addwatch" title="Watch this file">Watch this File</a>
+</p>
+
+</div>
+
+        </th>
+      </tr>
+      <tr>
+        <td class="file">
+          <table cellpadding="0" cellspacing="0" border="0" class="fileview section">
+          <tbody><tr class="title">
+            <th colspan="2"><span class="heading">File Information</span></th>
+          </tr>
+          <tr>
+            <td class="label">Description</td>
+            <td><p>LineCurvature2D, This function calculates the curvature of a 2D line. It first fits polygons to the points. Then calculates the analytical curvature from the polygons.
+<br>&nbsp;
+<br>&nbsp;&nbsp;&nbsp;K = LineCurvature2D(Vertices,Lines)
+<br>&nbsp;&nbsp;
+<br>&nbsp;&nbsp;inputs,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;Vertices : A M x 2 list of line points.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(optional)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;Lines : A N x 2 list of line pieces, by indices of the vertices
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if not set assume Lines=[1 2; 3 4 ; ... ; M-1 M])
+<br>&nbsp;
+<br>&nbsp;&nbsp;outputs,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;K : M x 1 Curvature values</p>
+
+<p>.
+<br>.
+<br>LineNormals2D, This function calculates the normals, of the line. Using the neighbouring points of each line/contour point, and forward an backward differences on the end points</p>
+
+<p>&nbsp;&nbsp;N=LineNormals2D(V,L)
+<br>&nbsp;
+<br>&nbsp;&nbsp;inputs,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;V : List of points/vertices 2 x M
+<br>&nbsp;&nbsp;(optional)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;Lines : A N x 2 list of line pieces, by indices of the vertices
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if not set assume Lines=[1 2; 3 4 ; ... ; M-1 M])
+<br>&nbsp;
+<br>&nbsp;&nbsp;outputs,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;N : The normals of the Vertices 2 x M
+<br>&nbsp;</p>
+
+<p></p></td>
+          </tr>
+
+          
+
+
+          <tr>
+            <td class="label">MATLAB release</td>
+            <td>
+              MATLAB 7.12 (R2011a)
+            </td>
+          </tr>
+
+
+        </tbody></table>
+
+          <table cellpadding="0" cellspacing="0" class="fileview section">
+  <tbody><tr class="title">
+    <th colspan="3">
+      <span class="heading">Tags for This File </span>
+      <a href="http://www.mathworks.com/matlabcentral/fileexchange/help_tags" class="info notext" onclick="window.open(this.href,&#39;small&#39;,&#39;toolbar=no,resizable=yes,status=yes,menu=no,scrollbars=yes,width=600,height=550&#39;);return false;">&nbsp;</a>
+      <span class="tags-add-link">
+        <a href="https://www.mathworks.com/accesslogin/index_fe.do?uri=http%3A%2F%2Fwww.mathworks.com%2Fmatlabcentral%2Ffileexchange%2F32696-2d-line-curvature-and-normals">Please login</a> to tag files.
+      </span>
+    </th>
+  </tr>
+  <tr>
+    <td colspan="3">
+      <div id="all_tags" class="tag-list">
+        <ul><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%222d%22" rel="nofollow">2d</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22accurate%22" rel="nofollow">accurate</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22curvature%22" rel="nofollow">curvature</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22curves%22" rel="nofollow">curves</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22fitting%22" rel="nofollow">fitting</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22line%22" rel="nofollow">line</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22normal%22" rel="nofollow">normal</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22normals%22" rel="nofollow">normals</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22plane+curves%22" rel="nofollow">plane curves</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22plot%22" rel="nofollow">plot</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22points%22" rel="nofollow">points</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22polynomal%22" rel="nofollow">polynomal</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22vertices%22" rel="nofollow">vertices</a><span class="separator"></span></li><li><a href="http://www.mathworks.com/matlabcentral/fileexchange/?term=tag%3A%22weighted%22" rel="nofollow">weighted</a></li></ul>
+
+    </div>
+  </td>
+</tr>
+<tr>
+  <td colspan="3">
+    <div class="add_tags_form">
+      <form accept-charset="UTF-8" action="http://www.mathworks.com/matlabcentral/fileexchange/tags/new" data-remote="true" id="add_new_tags_form" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="✓"></div>
+        <input type="hidden" name="id" value="32696">
+        <div class="multicomplete"><input class="text multicomplete-input ui-autocomplete-input" id="add_tags" type="text" value=""><span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span></div>
+        <div class="buttons">
+          <input type="submit" value="Save">
+          <a href="http://www.mathworks.com/matlabcentral/fileexchange/file_infos/32696-2d-line-curvature-and-normals" rel="nofollow">Cancel</a>
+        </div>
+</form>      </div>
+    </td>
+  </tr>
+</tbody></table>
+
+<script type="text/javascript" src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/jquery.multicomplete.js"></script>
+<script type="text/javascript">
+  $("#add_tags").multicomplete({
+    data_source: { url: "/matlabcentral/fileexchange/tags" }
+  });
+
+  $(".add_tags").click(function() {
+    $(".add_tags_form").show();
+    $("#add_tags").focus();
+    return false;
+  });
+
+  $(".add_tags_form .buttons a").click(function() {
+    $("#add_tags").val('').blur();
+    $(".add_tags_form").hide();
+    return false;
+  });
+
+  $("#add_new_tags_form").on('ajax:complete', function(){
+    $('.multicomplete > .multicomplete-selected-item').remove()
+    $("#add_tags").val('').blur();
+    $(".add_tags_form").hide();
+    return false;
+  });
+
+</script>
+                  <a name="comments"></a>
+        <div id="comment_block">
+          <table cellpadding="0" cellspacing="0" class="fileview inlineform">
+              <tbody><tr>
+                <td>
+                  <a href="https://www.mathworks.com/accesslogin/index_fe.do?uri=http%3A%2F%2Fwww.mathworks.com%2Fmatlabcentral%2Ffileexchange%2F32696-2d-line-curvature-and-normals">Please login</a> to add a comment or rating.
+                </td>
+              </tr>
+          </tbody></table>
+        </div>
+
+
+          <a name="feedback"></a>
+          <div id="feedbacks_table">
+                
+<table cellpadding="0" cellspacing="0" border="0" class="fileview section">
+
+  <thead>
+    <tr class="title">
+      <th colspan="4"><span class="heading">Comments and Ratings</span> <span class="info">(4)</span></th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td class="date"><span class="date">18 Feb 2014</span></td>
+        <td>
+          <span class="author">
+            <a href="http://www.mathworks.com/matlabcentral/fileexchange/authors/433498">Yunfeng</a>
+          </span>
+        </td>
+        <td><span class="comment">&nbsp;</span></td>
+        <td width="80">
+            <div class="starrating" title="5">
+              <div style="width:100%;
+                ">
+              </div>
+            </div>
+        </td>
+      </tr>
+      <tr class="&quot;odd&quot;">
+        <td class="date"><span class="date">08 Jul 2013</span></td>
+        <td>
+          <span class="author">
+            <a href="http://www.mathworks.com/matlabcentral/fileexchange/authors/368984">Simon</a>
+          </span>
+        </td>
+        <td><span class="comment"><p>Is there any literature to back this up??
+<br>Also, the grammar in the comments needs serious work....</p></span></td>
+        <td width="80">
+            <div class="starrating commentonly" title="Comment only" align="center"></div>
+        </td>
+      </tr>
+      <tr>
+        <td class="date"><span class="date">18 Jan 2013</span></td>
+        <td>
+          <span class="author">
+            <a href="http://www.mathworks.com/matlabcentral/fileexchange/authors/313174">Willy</a>
+          </span>
+        </td>
+        <td><span class="comment"><p>Thank you! Very usefull code! I would like to understand the maths behind the code better. Is this code based on some literature?</p></span></td>
+        <td width="80">
+            <div class="starrating" title="5">
+              <div style="width:100%;
+                ">
+              </div>
+            </div>
+        </td>
+      </tr>
+      <tr class="&quot;odd&quot;">
+        <td class="date"><span class="date">15 Oct 2011</span></td>
+        <td>
+          <span class="author">
+            <a href="http://www.mathworks.com/matlabcentral/fileexchange/authors/188662">Ravikiran Janardhana</a>
+          </span>
+        </td>
+        <td><span class="comment"><p>I would like to point out a small typo:-
+<br>*****(correct)****
+<br>if(nargin&lt;2)
+<br>    L=[(1:(size(V,1)-1))' (2:size(V,1))'];
+<br>end
+<br>*****
+<br>In the code I saw,the above was :-
+<br>*****(typo)*****
+<br>Lines=[(1:(size(Vertices,1)-1))' (2:size(Vertices,1))'];
+<br>*****
+</p></span></td>
+        <td width="80">
+            <div class="starrating" title="4">
+              <div style="width:80%;
+                ">
+              </div>
+            </div>
+        </td>
+      </tr>
+    </tbody>
+    </table>
+
+          </div>
+
+
+            <table cellpadding="0" cellspacing="0" border="0" class="fileview section">
+              <tbody><tr class="title">
+                <th colspan="2"><span class="heading">Updates</span></th>
+              </tr>
+                <tr>
+                  <td class="date">17 Oct 2011</td>
+                  <td><p>Corrected typo reported by Ravikiran Janardhana
+</p></td>
+                </tr>
+            </tbody></table>
+        </td>
+      </tr>
+    </tbody></table>
+    
+    <script src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/show.js" type="text/javascript"></script>
+  </div>
+
+<p id="contactus"><a href="http://www.mathworks.com/company/feedback/">Contact us</a></p>
+
+      
+</div>
+<div class="clearboth">&nbsp;</div>
+</div>
+</div>
+<!-- footer.html -->
+<!-- START OF FOOTER -->
+
+<div id="mlc-footer">
+  <script type="text/javascript">
+function clickDynamic(obj, target_url, tracking_code) {
+	var pos=target_url.indexOf("?");
+	if (pos<=0) { 
+		var linkComponents = target_url + tracking_code;
+		obj.href=linkComponents;
+	} 
+}
+</script>
+  <div class="wrapper">
+    <div>
+      <ul id="matlabcentral">
+        <li class="copyright first">© 1994-2014 The MathWorks, Inc.</li>
+        <li class="first"><a href="http://www.mathworks.com/help.html" title="Site Help">Site Help</a></li>
+        <li><a href="http://www.mathworks.com/company/aboutus/policies_statements/patents.html" title="patents" rel="nofollow">Patents</a></li>
+        <li><a href="http://www.mathworks.com/company/aboutus/policies_statements/trademarks.html" title="trademarks" rel="nofollow">Trademarks</a></li>
+        <li><a href="http://www.mathworks.com/company/aboutus/policies_statements/" title="privacy policy" rel="nofollow">Privacy Policy</a></li>
+        <li><a href="http://www.mathworks.com/company/aboutus/policies_statements/piracy.html" title="preventing piracy" rel="nofollow">Preventing Piracy</a></li>
+        <li class="last"><a href="http://www.mathworks.com/matlabcentral/termsofuse.html" title="Terms of Use" rel="nofollow">Terms of Use</a></li>
+        <li class="icon"><a href="http://www.mathworks.com/company/rss/" title="RSS" class="rssfeed" rel="nofollow"><span class="text">RSS</span></a></li>
+        <li class="icon"><a href="http://www.mathworks.com/programs/bounce_hub_generic.html?s_tid=mlc_lkd&url=http://www.linkedin.com/company/the-mathworks_2" title="LinkedIn" class="linkedin" rel="nofollow" target="_blank"></a></li>
+        <li class="icon"><a href="http://www.mathworks.com/programs/bounce_hub_generic.html?s_tid=mlc_fbk&url=https://plus.google.com/117177960465154322866?prsrc=3" title="Google+" class="google" rel="nofollow" target="_blank"><span class="text">Google+</span></a></li>
+        <li class="icon"><a href="http://www.mathworks.com/programs/bounce_hub_generic.html?s_tid=mlc_fbk&url=http://www.facebook.com/MATLAB" title="Facebook" class="facebook" rel="nofollow" target="_blank"><span class="text">Facebook</span></a></li>
+        		<li class="last icon"><a href="http://www.mathworks.com/programs/bounce_hub_generic.html?s_tid=mlc_twt&url=http://www.twitter.com/MATLAB" title="Twitter" class="twitter" rel="nofollow" target="_blank"><span class="text">Twitter</span></a></li>        
+        
+      </ul>
+      <ul id="mathworks">
+        <li class="first sectionhead">Featured MathWorks.com Topics:</li>
+        <li class="first"><a href="http://www.mathworks.com/products/new_products/latest_features.html" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_new&#39;)">New Products</a></li>
+        <li><a href="http://www.mathworks.com/support/" title="support" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_support&#39;)">Support</a></li>
+        <li><a href="http://www.mathworks.com/help" title="documentation" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_doc&#39;)">Documentation</a></li>
+        <li><a href="http://www.mathworks.com/services/training/" title="training" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_training&#39;)">Training</a></li>
+        <li><a href="http://www.mathworks.com/company/events/webinars/" title="Webinars" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_webinars&#39;)">Webinars</a></li>
+        <li><a href="http://www.mathworks.com/company/newsletters/" title="newsletters" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_newsletters&#39;)">Newsletters</a></li>
+        <li><a href="http://www.mathworks.com/programs/trials/trial_request.html?prodcode=ML&s_cid=MLC_trials" title="MATLAB Trials">MATLAB Trials</a></li>
+        
+        		<li class="last"><a href="http://www.mathworks.com/company/jobs/opportunities/index_en_US.html" title="Careers" onclick="clickDynamic(this, this.href, &#39;?s_cid=MLC_careers&#39;)">Careers</a></li>
+                 
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- END OF FOOTER -->
+
+
+      
+      
+<!-- SiteCatalyst code version: H.24.4.
+Copyright 1996-2012 Adobe, Inc. All Rights Reserved
+More info available at http://www.omniture.com -->
+<script language="JavaScript" type="text/javascript" src="./2D Line Curvature and Normals - File Exchange - MATLAB Central_files/s_code.js"></script>
+
+
+<script language="JavaScript" type="text/javascript">
+
+
+
+<!--
+/************* DO NOT ALTER ANYTHING BELOW THIS LINE ! **************/
+var s_code=s.t();if(s_code)document.write(s_code)//--></script>
+<script language="JavaScript" type="text/javascript"><!--
+if(navigator.appVersion.indexOf('MSIE')>=0)document.write(unescape('%3C')+'\!-'+'-')
+//--></script>
+<!--/DO NOT REMOVE/-->
+<!-- End SiteCatalyst code version: H.24.4. -->
+
+
+  
+
+    <!-- BEGIN Qualaroo --> 
+<script type="text/javascript">
+  var _kiq = _kiq || [];
+  (function(){
+    setTimeout(function(){
+    var d = document, f = d.getElementsByTagName('script')[0], s = d.createElement('script'); s.type = 'text/javascript';
+    s.async = true; s.src = '//s3.amazonaws.com/ki.js/49559/ahy.js'; f.parentNode.insertBefore(s, f);
+    }, 1);
+  })();
+</script>
+<!-- END Qualaroo --> 
+
+    
+
+<ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content ui-corner-all" id="ui-id-1" tabindex="0" style="display: none;"></ul></body></html>
