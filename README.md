@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This repository hosts a comprehensive MATLAB Simulink project aimed at the development and control of autonomous multi-robot systems (MRS). The project intricately combines elements of navigation, localization, and communication, enabling a fleet of robots to perform complex tasks collaboratively in a dynamic environment.
+This repository hosts a comprehensive MATLAB Simulink project aimed at the development and control of autonomous multi-robot systems (MRS). The project intricately combines elements of navigation, localization, and communication, enabling a fleet of robots to perform complex tasks collaboratively in a dynamic environment. This project is based on Robotarium instances.
 
 ## Key Features
 
